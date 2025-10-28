@@ -1,0 +1,81 @@
+﻿<Window x:Class="RemovePartition.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:RemovePartition"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="675" Width="1000">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="2*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal" Margin="10">
+            <Label Content="分隔位置"/>
+            <Slider Width="200" Value="50" Maximum="99" Minimum="1" x:Name="PartitionPositionSlider"/>
+            <Label  Content="Δx" />
+            <TextBox x:Name="Delta_xTextBox" Text="0.01" Width="50"/>
+            <Label Content="Δt"/>
+            <TextBox x:Name="Delta_tTextBox" Text="0.001" Width="50"/>
+            <Button x:Name="RemoveButton" Content="移除分隔" Margin="10,0,0,0" Click="RemoveButton_Click"/>
+            <Button x:Name="NextStepButton" Content="下一步" Margin="10,0,0,0" Click="NextStepButton_Click"/>
+            <Button x:Name="NextThousandButton" Content="下千步" Margin="10,0,0,0" Click="NextThousandButton_Click"/>
+            <Button x:Name="ResetButton" Content="重置" Margin="10,0,0,0" Click="ResetButton_Click"/>
+            <Button x:Name="TestButton" Content="测试" Margin="10,0,0,0" Click="TestButton_Click"/>
+        </StackPanel>
+        <Grid Grid.Row="1" >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Label Content="密&#x000A;&#x000A;度" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            <Grid Grid.Column="1" Height="Auto">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition  Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="100" x:Name="DensityMaxTextBlock" TextWrapping="NoWrap" VerticalAlignment="Bottom"/>
+                <Canvas Grid.Row="1" Width="Auto" Height="100" Background="LightGray"  x:Name="DensityCanvas" Margin="10,0,10,0"/>
+                <TextBlock Grid.Row="2" Text="0" x:Name="DensityMinTextBlock"  TextWrapping="NoWrap" VerticalAlignment="Top"/>
+            </Grid>
+        </Grid>
+        <Grid Grid.Row="2" >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Label Content="压&#x000A;&#x000A;强" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="0"/>
+            <Grid Grid.Column="1" Height="Auto">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition  Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="100" x:Name="PressureMaxTextBlock" TextWrapping="NoWrap" VerticalAlignment="Bottom"/>
+                <Canvas Grid.Row="1" Width="Auto" Height="100" Background="LightGray"  x:Name="PressureCanvas" Margin="10,0,10,0"/>
+                <TextBlock Grid.Row="2" Text="0" x:Name="PressureMinTextBlock"  TextWrapping="NoWrap" VerticalAlignment="Top"/>
+            </Grid>
+        </Grid>
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Label Content="速&#x000A;&#x000A;度" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="0"/>
+            <Grid Grid.Column="1" Height="Auto">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition  Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="100" x:Name="VelocityMaxTextBlock" TextWrapping="NoWrap" VerticalAlignment="Bottom"/>
+                <Canvas Grid.Row="1" Width="Auto" Height="200" Background="LightGray" x:Name="VelocityCanvas" Margin="10,0,10,0"/>
+                <TextBlock Grid.Row="2" Text="-100" x:Name="VelocityMinTextBlock"  TextWrapping="NoWrap" VerticalAlignment="Top"/>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>
