@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace RemovePartition;
 
 //tex:用 $\rho$ 、 $u$ 、 $p$ 作为原始变量
-public struct Primitive
+public struct Physics
 {
     public static double gamma { get; set; } = 1.3f;
     public double Density { get; set; }
@@ -19,7 +19,7 @@ public struct Primitive
         //tex: $U_\rho=\rho$
         readonly get => Density;
         //tex: $\rho=U_\rho$
-        set => Density = value < 0 ? 0 : value;
+        set => Density = Math.Max(0, value);
     }
     public double U_p
     {
@@ -37,7 +37,7 @@ public struct Primitive
     }
 
     //tex: $F_\rho=\rho u$
-    public readonly double F_rho => Density*Velocity;
+    public readonly double F_rho => Density * Velocity;
     //tex: $F_p=\rho u^2+p$
     public readonly double F_p => Density * Velocity.Square() + Pressure;
     //tex: $F_E=u\left(\rho E+p\right)$ where $\rho E=U_E$
@@ -49,91 +49,84 @@ public struct Primitive
 public class FluentGas : IGas
 {
     const int DEFAULT_POINTS_COUNT = 100;
-    int pointsCount = DEFAULT_POINTS_COUNT;
-    public int PointsCount
+
+    public FluentGas()
     {
-        get => pointsCount; set
-        {
-            primitives = [.. Enumerable.Repeat(new Primitive(), value)];
-            pointsCount = value;
-        }
+        PointsCount = DEFAULT_POINTS_COUNT;
     }
-    public double Delta_x { get; set; } = 0.01;
-    public double Delta_t { get; set; } = 0.001;
+
     public FluentGas(IGas that)
     {
         PointsCount = that.PointsCount;
         //手动缓存优化
         var (densitys, pressures, velocitys) = (that.Densitys, that.Pressures, that.Velocitys);
-        for(int i = 0; i < pointsCount; i++)
+        for(int i = 0; i < PointsCount; i++)
         {
-            Pr[i].Density = densitys[i];
-            Pr[i].Pressure = pressures[i];
-            Pr[i].Velocity = velocitys[i];
+            Ps[i].Density = densitys[i];
+            Ps[i].Pressure = pressures[i];
+            Ps[i].Velocity = velocitys[i];
         }
     }
 
-    public double[] Densitys => [.. Pr.Select(p => p.Density)];
-    public double[] Pressures => [.. Pr.Select(p => p.Pressure)];
-    public double[] Velocity => [.. Pr.Select(p => p.Velocity)];
+    Physics[] points = [.. Enumerable.Repeat(new Physics(), DEFAULT_POINTS_COUNT)];
+    // 起个短点的名字
+    Physics[] Ps => points;
 
-    //tex:
-    //  根据欧拉方程
-    // $$
-    //  \frac{\partial U}{\partial t}+\frac{\partial F}{\partial x}=0
-    // $$
-    //  在一维时
-    // $$
-    //  U=\begin{pmatrix}\rho\\\rho u\\\rho E\end{pmatrix},
-    //  F=\begin{pmatrix}\rho\\\rho u^2+p\\u\left(\rho E+p\right)\end{pmatrix}                                         
-    // $$
-    //  其中 $E=e+\frac 12u^2$ ，$e=\frac{RT}{\gamma-1}$
+    public int PointsCount
+    {
+        get => Ps.Length; set
+        {
+            points = [.. Enumerable.Repeat(new Physics(), value)];
+        }
+    }
 
-    Primitive[] primitives = [.. Enumerable.Repeat(new Primitive(), DEFAULT_POINTS_COUNT)];
-    Primitive[] Pr => primitives; // 起个短点的名字
+    public double Delta_x { get; set; } = 0.01;
+    public double Delta_t { get; set; } = 0.001;
 
-    //tex: 一阶欧拉向前差分
-    // $$
-    //     \frac{U^{\left(n+1\right)}-U^{\left(n\right)}}{\Delta t}
-    //          +\frac {\partial F}{\partial x}=0
-    // $$
-    // 空间选择中心差分
-    // $$
-    //  \frac {\partial F}{\partial x}=\frac{F_{j+1}-F_{j-1}}{\Delta x}
-    // $$
-    // 对左端点（$j=0$）采用向前差分 <br>
-    // 对右端点（$j=\text{-1}$）采用向后差分
+    public double[] Densitys => [.. Ps.Select(p => p.Density)];
+    public double[] Pressures => [.. Ps.Select(p => p.Pressure)];
+    public double[] Velocitys => [.. Ps.Select(p => p.Velocity)];
+
+    // 一阶欧拉向前差分
     public void ForwardEular()
     {
+        //tex: 
+        // $$
+        // \frac {\partial F}{\partial x} = \begin{cases}
+        //      \frac{F_{1}-F_{0}}{\Delta x} & j=0\\
+        //      \frac{F_{j+1}-F_{j-1}}{2\Delta x} & 0 \lt j \lt N-1\\
+        //      \frac{F_{N-1}-F_{N-2}}{\Delta x} & j=N-1
+        //  \end{cases}
+        // $$
         var part_x_F = new (double rho, double p, double E)[PointsCount];
         part_x_F[0] = (
-            (-3 * Pr[0].F_rho + 4 * Pr[1].F_rho - Pr[2].F_rho) / (2 * Delta_x),
-            (-3 * Pr[0].F_p + 4 * Pr[1].F_p - Pr[2].F_p) / (2 * Delta_x),
-            (-3 * Pr[0].F_E + 4 * Pr[1].F_E - Pr[2].F_E) / (2 * Delta_x)
+            (Ps[1].F_rho - Ps[0].F_rho) / Delta_x,
+            (Ps[1].F_p - Ps[0].F_p) / Delta_x,
+            (Ps[1].F_E - Ps[0].F_E) / Delta_x
         );
-        for(int j = 0 + 1; j < pointsCount - 1; j++)
+        for(int j = 0 + 1; j < PointsCount - 1; j++)
         {
             part_x_F[j] = (
-                (Pr[j + 1].F_rho - Pr[j - 1].F_rho) / Delta_x / 2,
-                (Pr[j + 1].F_p - Pr[j - 1].F_p) / Delta_x / 2,
-                (Pr[j + 1].F_E - Pr[j - 1].F_E) / Delta_x / 2
+                (Ps[j + 1].F_rho - Ps[j - 1].F_rho) / Delta_x / 2,
+                (Ps[j + 1].F_p - Ps[j - 1].F_p) / Delta_x / 2,
+                (Ps[j + 1].F_E - Ps[j - 1].F_E) / Delta_x / 2
             );
         }
         part_x_F[^1] = (
-            (3 * Pr[^1].F_rho - 4 * Pr[^2].F_rho + Pr[^3].F_rho) / (2 * Delta_x),
-            (3 * Pr[^1].F_p - 4 * Pr[^2].F_p + Pr[^3].F_p) / (2 * Delta_x),
-            (3 * Pr[^1].F_E - 4 * Pr[^2].F_E + Pr[^3].F_E) / (2 * Delta_x)
+            (Ps[^1].F_rho - Ps[^2].F_rho) / Delta_x,
+            (Ps[^1].F_p - Ps[^2].F_p) / Delta_x,
+            (Ps[^1].F_E - Ps[^2].F_E) / Delta_x
         );
         //tex: $$U^{\left(n+1\right)}=U^{\left(n\right)}
         //      -\frac {\partial F}{\partial x}\Delta t$$
-        var next = new Primitive[PointsCount];
-        for(int j = 0; j < pointsCount; j++)
+        var next = new Physics[PointsCount];
+        for(int j = 0; j < PointsCount; j++)
         {
-            next[j].U_rho = Pr[j].U_rho - part_x_F[j].rho * Delta_t;
-            next[j].U_p = Pr[j].U_p - part_x_F[j].p * Delta_t;
-            next[j].U_E = Pr[j].U_E - part_x_F[j].E * Delta_t;
+            next[j].U_rho = Ps[j].U_rho - part_x_F[j].rho * Delta_t;
+            next[j].U_p = Ps[j].U_p - part_x_F[j].p * Delta_t;
+            next[j].U_E = Ps[j].U_E - part_x_F[j].E * Delta_t;
         }
-        primitives = next;
+        points = next;
     }
 
     /// <summary>
@@ -153,26 +146,26 @@ public class FluentGas : IGas
 
         //tex: 左边界：二阶前向差分
         fluxDerivative[0] = (
-            (-3 * Pr[0].F_rho + 4 * Pr[1].F_rho - Pr[2].F_rho) / (2 * Delta_x),
-            (-3 * Pr[0].F_p + 4 * Pr[1].F_p - Pr[2].F_p) / (2 * Delta_x),
-            (-3 * Pr[0].F_E + 4 * Pr[1].F_E - Pr[2].F_E) / (2 * Delta_x)
+            (-3 * Ps[0].F_rho + 4 * Ps[1].F_rho - Ps[2].F_rho) / (2 * Delta_x),
+            (-3 * Ps[0].F_p + 4 * Ps[1].F_p - Ps[2].F_p) / (2 * Delta_x),
+            (-3 * Ps[0].F_E + 4 * Ps[1].F_E - Ps[2].F_E) / (2 * Delta_x)
         );
 
         //tex: 内部点：二阶中心差分
         for(int j = 1; j < PointsCount - 1; j++)
         {
             fluxDerivative[j] = (
-                (Pr[j + 1].F_rho - Pr[j - 1].F_rho) / (2 * Delta_x),
-                (Pr[j + 1].F_p - Pr[j - 1].F_p) / (2 * Delta_x),
-                (Pr[j + 1].F_E - Pr[j - 1].F_E) / (2 * Delta_x)
+                (Ps[j + 1].F_rho - Ps[j - 1].F_rho) / (2 * Delta_x),
+                (Ps[j + 1].F_p - Ps[j - 1].F_p) / (2 * Delta_x),
+                (Ps[j + 1].F_E - Ps[j - 1].F_E) / (2 * Delta_x)
             );
         }
 
         //tex: 右边界：二阶后向差分
         fluxDerivative[^1] = (
-            (3 * Pr[^1].F_rho - 4 * Pr[^2].F_rho + Pr[^3].F_rho) / (2 * Delta_x),
-            (3 * Pr[^1].F_p - 4 * Pr[^2].F_p + Pr[^3].F_p) / (2 * Delta_x),
-            (3 * Pr[^1].F_E - 4 * Pr[^2].F_E + Pr[^3].F_E) / (2 * Delta_x)
+            (3 * Ps[^1].F_rho - 4 * Ps[^2].F_rho + Ps[^3].F_rho) / (2 * Delta_x),
+            (3 * Ps[^1].F_p - 4 * Ps[^2].F_p + Ps[^3].F_p) / (2 * Delta_x),
+            (3 * Ps[^1].F_E - 4 * Ps[^2].F_E + Ps[^3].F_E) / (2 * Delta_x)
         );
 
         //tex: === 第二步：计算二阶导数项 ∂/∂x(A * ∂F/∂x) ===
@@ -183,8 +176,8 @@ public class FluentGas : IGas
         var A_times_fluxDeriv = new (double rho, double p, double E)[PointsCount];
         for(int j = 0; j < PointsCount; j++)
         {
-            double soundSpeed = Math.Sqrt(Primitive.gamma * Pr[j].Pressure / Pr[j].Density);
-            double waveSpeed = Math.Abs(Pr[j].Velocity) + soundSpeed;
+            double soundSpeed = Math.Sqrt(Physics.gamma * Ps[j].Pressure / Ps[j].Density);
+            double waveSpeed = Math.Abs(Ps[j].Velocity) + soundSpeed;
 
             //tex: 近似计算 A * ∂F/∂x
             A_times_fluxDeriv[j] = (
@@ -221,7 +214,7 @@ public class FluentGas : IGas
 
         //tex: === 第三步：组合Lax-Wendroff更新公式 ===
         //tex: U^(n+1) = U^n - Δt * ∂F/∂x + (Δt²/2) * ∂/∂x(A * ∂F/∂x)
-        var next = new Primitive[PointsCount];
+        var next = new Physics[PointsCount];
         for(int j = 0; j < PointsCount; j++)
         {
             //tex: 一阶项：-Δt * ∂F/∂x
@@ -235,9 +228,9 @@ public class FluentGas : IGas
             double E_second_order = (Delta_t * Delta_t * 0.5f) * secondOrderTerm[j].E;
 
             //tex: 组合更新
-            next[j].U_rho = Pr[j].U_rho + rho_first_order + rho_second_order;
-            next[j].U_p = Pr[j].U_p + p_first_order + p_second_order;
-            next[j].U_E = Pr[j].U_E + E_first_order + E_second_order;
+            next[j].U_rho = Ps[j].U_rho + rho_first_order + rho_second_order;
+            next[j].U_p = Ps[j].U_p + p_first_order + p_second_order;
+            next[j].U_E = Ps[j].U_E + E_first_order + E_second_order;
 
             //tex: 物理约束检查
             if(next[j].Density <= 0)
@@ -248,7 +241,7 @@ public class FluentGas : IGas
                 next[j].Velocity = 0f;
         }
 
-        primitives = next;
+        points = next;
     }
 
     /// <summary>
@@ -258,20 +251,20 @@ public class FluentGas : IGas
     public void LaxWendroffTwoStep()
     {
         //tex: 第一步：计算半时间步的中间值
-        var halfTimeStep = new Primitive[PointsCount];
+        var halfTimeStep = new Physics[PointsCount];
 
         //tex: 使用Lax-Friedrichs格式计算半时间步
         for(int j = 1; j < PointsCount - 1; j++)
         {
             //tex: 平均值
-            double avg_rho = 0.5f * (Pr[j - 1].U_rho + Pr[j + 1].U_rho);
-            double avg_p = 0.5f * (Pr[j - 1].U_p + Pr[j + 1].U_p);
-            double avg_E = 0.5f * (Pr[j - 1].U_E + Pr[j + 1].U_E);
+            double avg_rho = 0.5f * (Ps[j - 1].U_rho + Ps[j + 1].U_rho);
+            double avg_p = 0.5f * (Ps[j - 1].U_p + Ps[j + 1].U_p);
+            double avg_E = 0.5f * (Ps[j - 1].U_E + Ps[j + 1].U_E);
 
             //tex: 通量差
-            double flux_rho = (Pr[j + 1].F_rho - Pr[j - 1].F_rho) / (2 * Delta_x);
-            double flux_p = (Pr[j + 1].F_p - Pr[j - 1].F_p) / (2 * Delta_x);
-            double flux_E = (Pr[j + 1].F_E - Pr[j - 1].F_E) / (2 * Delta_x);
+            double flux_rho = (Ps[j + 1].F_rho - Ps[j - 1].F_rho) / (2 * Delta_x);
+            double flux_p = (Ps[j + 1].F_p - Ps[j - 1].F_p) / (2 * Delta_x);
+            double flux_E = (Ps[j + 1].F_E - Ps[j - 1].F_E) / (2 * Delta_x);
 
             //tex: 半时间步更新
             halfTimeStep[j].U_rho = avg_rho - (Delta_t * 0.5f) * flux_rho;
@@ -284,7 +277,7 @@ public class FluentGas : IGas
         halfTimeStep[^1] = halfTimeStep[^2];
 
         //tex: 第二步：使用中间值计算全时间步
-        var next = new Primitive[PointsCount];
+        var next = new Physics[PointsCount];
 
         for(int j = 1; j < PointsCount - 1; j++)
         {
@@ -294,15 +287,15 @@ public class FluentGas : IGas
             double flux_E_deriv = (halfTimeStep[j + 1].F_E - halfTimeStep[j - 1].F_E) / (2 * Delta_x);
 
             //tex: 全时间步更新
-            next[j].U_rho = Pr[j].U_rho - Delta_t * flux_rho_deriv;
-            next[j].U_p = Pr[j].U_p - Delta_t * flux_p_deriv;
-            next[j].U_E = Pr[j].U_E - Delta_t * flux_E_deriv;
+            next[j].U_rho = Ps[j].U_rho - Delta_t * flux_rho_deriv;
+            next[j].U_p = Ps[j].U_p - Delta_t * flux_p_deriv;
+            next[j].U_E = Ps[j].U_E - Delta_t * flux_E_deriv;
         }
 
         //tex: 边界条件
         next[0] = next[1];
         next[^1] = next[^2];
 
-        primitives = next;
+        points = next;
     }
 }

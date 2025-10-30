@@ -38,7 +38,7 @@ public partial class MainWindow : Window
                     RemoveButton.IsEnabled = true;
                     // 还没开始推进
                     NextStepButton.IsEnabled = false;
-                    NextThousandButton.IsEnabled = false;
+                    NextManyButton.IsEnabled = false;
                     // 可以重置
                     ResetButton.IsEnabled = true;
                     break;
@@ -51,7 +51,7 @@ public partial class MainWindow : Window
                     RemoveButton.IsEnabled = false;
                     // 可以推进
                     NextStepButton.IsEnabled = true;
-                    NextThousandButton.IsEnabled = true;
+                    NextManyButton.IsEnabled = true;
                     // 可以重置
                     ResetButton.IsEnabled = true;
                     break;
@@ -62,14 +62,14 @@ public partial class MainWindow : Window
                     Delta_xTextBox.IsEnabled = false;
                     RemoveButton.IsEnabled = false;
                     NextStepButton.IsEnabled = false;
-                    NextThousandButton.IsEnabled = false;
+                    NextManyButton.IsEnabled = false;
                     ResetButton.IsEnabled = false;
                     break;
             }
         }
     }
 
-    IGas gas = new PartitionedGas();
+    IGas gas = new PartitionedGas() { PointsCount=1000};
 
     public MainWindow()
     {
@@ -92,24 +92,38 @@ public partial class MainWindow : Window
         Loaded += onLoaded;
     }
 
+    // FluentGas[] others = [];
+
     private void Draw()
     {
         foreach(var canvas in new Canvas[3] { DensityCanvas, PressureCanvas, VelocityCanvas })
         {
             canvas.Children.Clear();
         }
-        var denMax =1.1* gas.Densitys.Max();
-        DensityCanvas.Draw(gas.Densitys,(0,denMax));
+
+        var denMax = 1.1 * gas.Densitys.Max();
+        DensityCanvas.Draw(gas.Densitys, (0, denMax));
         DensityMaxTextBlock.Text = $"{denMax}";
-        var preMax=1.1*gas.Pressures.Max();
-        PressureCanvas.Draw(gas.Pressures,(0,preMax));
+
+        var preMax = 1.1 * gas.Pressures.Max();
+        PressureCanvas.Draw(gas.Pressures, (0, preMax));
         PressureMaxTextBlock.Text = $"{preMax}";
-        var (vMin,vMax)=(gas.Densitys.Min(),gas.Densitys.Max());
-        vMin *= vMin > 0 ? 0.9 : 1.1;
-        vMax *= vMax > 0 ? 1.1 : 0.9;
+
+        var (vMin, vMax) = (gas.Velocitys.Min(), gas.Velocitys.Max());
+        vMax *= vMax >= 0 ? 1.1 : 0.9;
+        vMin *= vMin <= 0 ? 1.1 : 0.9;
+
         VelocityCanvas.Draw(gas.Velocitys, (vMin, vMax));
-        VelocityMinTextBlock.Text=$"{vMin}";
+        VelocityMinTextBlock.Text = $"{vMin}";
         VelocityMaxTextBlock.Text = $"{vMax}";
+
+        //Brush[] brushes = [Brushes.Blue, Brushes.Red, Brushes.Green, Brushes.Orange, Brushes.Purple];
+        //for(int i = 0; i < others.Length; i++)
+        //{
+        //    DensityCanvas.Draw(others[i].Densitys, (0, denMax), brushes[i]);
+        //    PressureCanvas.Draw(others[i].Pressures, (0, preMax), brushes[i]);
+        //    VelocityCanvas.Draw(others[i].Velocitys, (vMin, vMax), brushes[i]);
+        //}
     }
 
     private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -130,6 +144,15 @@ public partial class MainWindow : Window
                 Delta_t = dt,
                 Delta_x = dx,
             };
+            //others = [new FluentGas(gas)
+            //{
+            //    Delta_t = dt,
+            //    Delta_x = dx,
+            //},new FluentGas(gas)
+            //{
+            //    Delta_t = dt,
+            //    Delta_x = dx,
+            //}];
             Draw();
         }
         else
@@ -140,7 +163,12 @@ public partial class MainWindow : Window
 
     private void NextStepButton_Click(object sender, RoutedEventArgs e)
     {
-        (gas as FluentGas)!.ForwardEular();
+        (gas as FluentGas)!
+            .ForwardEular();
+        //.LaxWendroff();
+        //.LaxWendroffTwoStep();
+        //others[0].LaxWendroff();
+        //others[1].LaxWendroffTwoStep();
         Draw();
     }
 
@@ -148,33 +176,45 @@ public partial class MainWindow : Window
     {
         State = StateEnum.Idle;
         gas = new PartitionedGas();
+        //others = [];
         PartitionPositionSlider.Value = 50;
+    }
+
+    private void NextManyButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dt = new System.Windows.Threading.DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(20)
+        };
+        var cnt = 0;
+        State = StateEnum.Busy;
+        dt.Tick += async (_, _) =>
+        {
+            await Task.Run(() =>
+            {
+                (gas as FluentGas)!
+                    .ForwardEular();
+                //.LaxWendroff();
+                //.LaxWendroffTwoStep();
+                //others[0].LaxWendroff();
+                //others[1].LaxWendroffTwoStep();
+            }); 
+            
+            Draw();
+
+            if(++cnt > 500)
+            {
+                dt.Stop();
+                StepCountTextBlock.Text = $"";
+                State = StateEnum.Working;
+            }
+            StepCountTextBlock.Text = $"{cnt}";
+        };
+        dt.Start();
     }
 
     private void TestButton_Click(object sender, RoutedEventArgs e)
     {
-        MessageBox.Show(string.Join("\t", (gas as FluentGas)!.Velocity.Select(v => $"{v}")));
-    }
-
-    private void NextThousandButton_Click(object sender, RoutedEventArgs e)
-    {
-        var dt = new System.Windows.Threading.DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(10)
-        };
-        var cnt = 0;
-        State = StateEnum.Busy;
-        dt.Tick += new EventHandler((_, _) =>
-        {
-            (gas as FluentGas)!.ForwardEular();
-            Draw();
-            if(++cnt > 1000)
-            {
-                dt.Stop();
-                State = StateEnum.Working;
-            }
-        });
-        dt.Start();
-
+        MessageBox.Show(string.Join("\t", gas.Velocitys.Select(v => $"{v}")));
     }
 }

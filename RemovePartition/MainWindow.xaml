@@ -22,9 +22,10 @@
             <TextBox x:Name="Delta_tTextBox" Text="0.001" Width="50"/>
             <Button x:Name="RemoveButton" Content="移除分隔" Margin="10,0,0,0" Click="RemoveButton_Click"/>
             <Button x:Name="NextStepButton" Content="下一步" Margin="10,0,0,0" Click="NextStepButton_Click"/>
-            <Button x:Name="NextThousandButton" Content="下千步" Margin="10,0,0,0" Click="NextThousandButton_Click"/>
+            <Button x:Name="NextManyButton" Content="下几步" Margin="10,0,0,0" Click="NextManyButton_Click"/>
             <Button x:Name="ResetButton" Content="重置" Margin="10,0,0,0" Click="ResetButton_Click"/>
             <Button x:Name="TestButton" Content="测试" Margin="10,0,0,0" Click="TestButton_Click"/>
+            <TextBlock x:Name="StepCountTextBlock" Margin="10,0,0,0"/>
         </StackPanel>
         <Grid Grid.Row="1" >
             <Grid.ColumnDefinitions>
@@ -34,12 +35,12 @@
             <Label Content="密&#x000A;&#x000A;度" HorizontalAlignment="Center" VerticalAlignment="Center" />
             <Grid Grid.Column="1" Height="Auto">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition  Height="*"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition  Height="Auto"/>
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Text="100" x:Name="DensityMaxTextBlock" TextWrapping="NoWrap" VerticalAlignment="Bottom"/>
-                <Canvas Grid.Row="1" Width="Auto" Height="100" Background="LightGray"  x:Name="DensityCanvas" Margin="10,0,10,0"/>
+                <Canvas Grid.Row="1" Background="LightGray"  x:Name="DensityCanvas" Margin="10,0,10,0"/>
                 <TextBlock Grid.Row="2" Text="0" x:Name="DensityMinTextBlock"  TextWrapping="NoWrap" VerticalAlignment="Top"/>
             </Grid>
         </Grid>
@@ -51,12 +52,12 @@
             <Label Content="压&#x000A;&#x000A;强" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="0"/>
             <Grid Grid.Column="1" Height="Auto">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition  Height="*"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition  Height="Auto"/>
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Text="100" x:Name="PressureMaxTextBlock" TextWrapping="NoWrap" VerticalAlignment="Bottom"/>
-                <Canvas Grid.Row="1" Width="Auto" Height="100" Background="LightGray"  x:Name="PressureCanvas" Margin="10,0,10,0"/>
+                <Canvas Grid.Row="1" Background="LightGray"  x:Name="PressureCanvas" Margin="10,0,10,0"/>
                 <TextBlock Grid.Row="2" Text="0" x:Name="PressureMinTextBlock"  TextWrapping="NoWrap" VerticalAlignment="Top"/>
             </Grid>
         </Grid>
@@ -68,12 +69,12 @@
             <Label Content="速&#x000A;&#x000A;度" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="0"/>
             <Grid Grid.Column="1" Height="Auto">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition  Height="*"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition  Height="Auto"/>
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Text="100" x:Name="VelocityMaxTextBlock" TextWrapping="NoWrap" VerticalAlignment="Bottom"/>
-                <Canvas Grid.Row="1" Width="Auto" Height="200" Background="LightGray" x:Name="VelocityCanvas" Margin="10,0,10,0"/>
+                <Canvas Grid.Row="1" Background="LightGray" x:Name="VelocityCanvas" Margin="10,0,10,0"/>
                 <TextBlock Grid.Row="2" Text="-100" x:Name="VelocityMinTextBlock"  TextWrapping="NoWrap" VerticalAlignment="Top"/>
             </Grid>
         </Grid>

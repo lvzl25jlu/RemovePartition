@@ -41,11 +41,11 @@ public class PartitionedGas : IGas
             // 因此移动隔板后同时给两项除以体积的变化倍数即可
 
             // 转成浮点数，下同
-            var eta = (value - 0) * 1.0f / (partitionIndex - 0);
+            var eta = (value - 0) * 1.0 / (partitionIndex - 0);
             leftGas.Density /= eta;
             leftGas.Pressure /= eta;
 
-            var mu = (PointsCount - value) * 1.0f / (PointsCount - partitionIndex);
+            var mu = (PointsCount - value) * 1.0 / (PointsCount - partitionIndex);
             rightGas.Density /= mu;
             rightGas.Pressure /= mu;
 

@@ -64,10 +64,8 @@ public static class Utils
 			Data = pathGeometry
 		};
 
-		canvas.Children.Clear();
 		canvas.Children.Add(path);
 	}
-
 }
 
 public static class Differencer

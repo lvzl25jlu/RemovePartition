@@ -23,19 +23,16 @@ classDiagram
 		+Densitys
 		+Pressures
 		+Velocitys
-		+Next()
 	}
 	class PartitionedGas{
 		+Densitys
 		+Pressures
 		+Velocitys
-		+Next()
 	}
 	class FluentGas{
 		+Densitys
 		+Pressures
 		+Velocitys
-		+Next()
 	}
 	class IdealGas{
 		+Density
