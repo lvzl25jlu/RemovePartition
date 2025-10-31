@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -69,7 +70,7 @@ public partial class MainWindow : Window
         }
     }
 
-    IGas gas = new PartitionedGas() { PointsCount=1000};
+    IGas gas = new PartitionedGas() { PointsCount=10000};
 
     public MainWindow()
     {
@@ -92,8 +93,6 @@ public partial class MainWindow : Window
         Loaded += onLoaded;
     }
 
-    // FluentGas[] others = [];
-
     private void Draw()
     {
         foreach(var canvas in new Canvas[3] { DensityCanvas, PressureCanvas, VelocityCanvas })
@@ -101,13 +100,13 @@ public partial class MainWindow : Window
             canvas.Children.Clear();
         }
 
-        var denMax = 1.1 * gas.Densitys.Max();
-        DensityCanvas.Draw(gas.Densitys, (0, denMax));
-        DensityMaxTextBlock.Text = $"{denMax}";
+        var rhoMax = 1.1 * gas.Densitys.Max();
+        DensityCanvas.Draw(gas.Densitys, (0, rhoMax));
+        DensityMaxTextBlock.Text = $"{rhoMax}";
 
-        var preMax = 1.1 * gas.Pressures.Max();
-        PressureCanvas.Draw(gas.Pressures, (0, preMax));
-        PressureMaxTextBlock.Text = $"{preMax}";
+        var pMax = 1.1 * gas.Pressures.Max();
+        PressureCanvas.Draw(gas.Pressures, (0, pMax));
+        PressureMaxTextBlock.Text = $"{pMax}";
 
         var (vMin, vMax) = (gas.Velocitys.Min(), gas.Velocitys.Max());
         vMax *= vMax >= 0 ? 1.1 : 0.9;
@@ -117,18 +116,11 @@ public partial class MainWindow : Window
         VelocityMinTextBlock.Text = $"{vMin}";
         VelocityMaxTextBlock.Text = $"{vMax}";
 
-        //Brush[] brushes = [Brushes.Blue, Brushes.Red, Brushes.Green, Brushes.Orange, Brushes.Purple];
-        //for(int i = 0; i < others.Length; i++)
-        //{
-        //    DensityCanvas.Draw(others[i].Densitys, (0, denMax), brushes[i]);
-        //    PressureCanvas.Draw(others[i].Pressures, (0, preMax), brushes[i]);
-        //    VelocityCanvas.Draw(others[i].Velocitys, (vMin, vMax), brushes[i]);
-        //}
     }
 
     private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        (gas as PartitionedGas)!.PartitionIndex = (int)e.NewValue;
+        (gas as PartitionedGas)!.PartitionIndex = (int)e.NewValue.Square();
         Draw();
     }
 
@@ -136,23 +128,16 @@ public partial class MainWindow : Window
     {
         if(true // 对齐用
             && double.TryParse(Delta_tTextBox.Text, out var dt)
-            && double.TryParse(Delta_xTextBox.Text, out var dx))
+            && double.TryParse(Delta_xTextBox.Text, out var dx)
+            && double.TryParse(CFL_TextBox.Text,out var cfl))
         {
             State = StateEnum.Working;
             gas = new FluentGas(gas)
             {
                 Delta_t = dt,
                 Delta_x = dx,
+                CFL = cfl,
             };
-            //others = [new FluentGas(gas)
-            //{
-            //    Delta_t = dt,
-            //    Delta_x = dx,
-            //},new FluentGas(gas)
-            //{
-            //    Delta_t = dt,
-            //    Delta_x = dx,
-            //}];
             Draw();
         }
         else
@@ -161,22 +146,24 @@ public partial class MainWindow : Window
         }
     }
 
-    private void NextStepButton_Click(object sender, RoutedEventArgs e)
+    async Task Next()
     {
-        (gas as FluentGas)!
-            .ForwardEular();
-        //.LaxWendroff();
-        //.LaxWendroffTwoStep();
-        //others[0].LaxWendroff();
-        //others[1].LaxWendroffTwoStep();
+        await Task.Run(() => {
+            (gas as FluentGas)!.ForwardEular();
+        } );
+        Delta_tTextBox.Text = $"{(gas as FluentGas)!.Delta_t}";
         Draw();
+    }
+
+    private async void NextStepButton_Click(object sender, RoutedEventArgs e)
+    {
+        await Next();
     }
 
     private void ResetButton_Click(object sender, RoutedEventArgs e)
     {
         State = StateEnum.Idle;
         gas = new PartitionedGas();
-        //others = [];
         PartitionPositionSlider.Value = 50;
     }
 
@@ -184,23 +171,13 @@ public partial class MainWindow : Window
     {
         var dt = new System.Windows.Threading.DispatcherTimer
         {
-            Interval = TimeSpan.FromMilliseconds(20)
+            Interval = TimeSpan.FromMilliseconds(100)
         };
         var cnt = 0;
         State = StateEnum.Busy;
         dt.Tick += async (_, _) =>
         {
-            await Task.Run(() =>
-            {
-                (gas as FluentGas)!
-                    .ForwardEular();
-                //.LaxWendroff();
-                //.LaxWendroffTwoStep();
-                //others[0].LaxWendroff();
-                //others[1].LaxWendroffTwoStep();
-            }); 
-            
-            Draw();
+            await Next();
 
             if(++cnt > 500)
             {

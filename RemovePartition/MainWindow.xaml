@@ -17,9 +17,11 @@
             <Label Content="分隔位置"/>
             <Slider Width="200" Value="50" Maximum="99" Minimum="1" x:Name="PartitionPositionSlider"/>
             <Label  Content="Δx" />
-            <TextBox x:Name="Delta_xTextBox" Text="0.01" Width="50"/>
+            <TextBox x:Name="Delta_xTextBox" Text="0.0001" Width="50" IsEnabled="False"/>
             <Label Content="Δt"/>
             <TextBox x:Name="Delta_tTextBox" Text="0.001" Width="50"/>
+            <Label Content="CFL"/>
+            <TextBox x:Name="CFL_TextBox"   Text="0.5" Width="50"/>
             <Button x:Name="RemoveButton" Content="移除分隔" Margin="10,0,0,0" Click="RemoveButton_Click"/>
             <Button x:Name="NextStepButton" Content="下一步" Margin="10,0,0,0" Click="NextStepButton_Click"/>
             <Button x:Name="NextManyButton" Content="下几步" Margin="10,0,0,0" Click="NextManyButton_Click"/>

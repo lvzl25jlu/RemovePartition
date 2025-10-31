@@ -32,11 +32,11 @@ public static class Utils
 	public static void Draw(this Canvas canvas, double[] datas, (double min, double max) range, Brush brush)
 	{
 		var interval = canvas.ActualWidth / (datas.Length - 1);
-		if(interval <= 1)
-		{
-			canvas.Children.Add(new TextBlock { Text = "画布太窄" });
-			return;
-		}
+		//if(interval <= 1)
+		//{
+		//	canvas.Children.Add(new TextBlock { Text = "画布太窄" });
+		//	return;
+		//}
 		var h = range.max - range.min;
 		var H = canvas.ActualHeight;
 		var pathFigure = new PathFigure()

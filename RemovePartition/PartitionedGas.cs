@@ -8,14 +8,9 @@ public struct IdealGas()
 
 public class PartitionedGas : IGas
 {
-    public PartitionedGas()
-    {
+    public int PointsCount { get; set; } = IGas.DEFAULT_POINTS_COUNT;
 
-    }
-    const int DefaultPointsCount = 100;
-    public int PointsCount { get; set; } = DefaultPointsCount;
-
-    int partitionIndex = DefaultPointsCount / 2;
+    int partitionIndex =IGas.DEFAULT_POINTS_COUNT / 2;
 
     IdealGas leftGas = new();
     IdealGas rightGas = new();
