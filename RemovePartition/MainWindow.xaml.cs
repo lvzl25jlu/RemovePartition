@@ -149,7 +149,7 @@ public partial class MainWindow : Window
     async Task Next()
     {
         await Task.Run(() => {
-            (gas as FluentGas)!.ForwardEular();
+            (gas as FluentGas)!.ForwardEularEx();
         } );
         Delta_tTextBox.Text = $"{(gas as FluentGas)!.Delta_t}";
         Draw();

@@ -48,4 +48,10 @@ classDiagram
 
 ### 推进中
 
+考虑欧拉方程：
 
+$$
+\frac {\partial }{\partial t}U=-\frac {\partial }{\partial x}F
+$$
+
+其中：

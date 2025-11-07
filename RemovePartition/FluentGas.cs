@@ -133,4 +133,53 @@ public class FluentGas : IGas
         //tex:$\Delta t=\text{CFL}\times\frac{\Delta x}{ \left|u\right|+c}$
         Delta_t = CFL * Delta_x / (Ps.Select(p => p.SoundSpeed + Math.Abs(p.Velocity)).Max());
     }
+
+    // 一阶欧拉向前差分改进版
+    public void ForwardEularEx()
+    {
+        //tex: 通过手动展开计算式：
+        //$$
+        //  \begin{align*}
+        //      \frac{\partial \rho}{\partial t}=-\left(\rho\frac{\partial u}{\partial x}+u\frac{\partial \rho}{\partial x}\right)\\
+        //      \frac{\partial u}{\partial t}=-\left(u\frac{\partial u}{\partial x}+\frac{1}{\rho}\frac{\partial p}{\partial x}\right)\\
+        //      \frac{\partial p}{\partial t}=-\left(\gamma p\frac{\partial u}{\partial x}+u\frac{\partial p}{\partial x}\right)\\
+        //  \end{align*}
+        //$$
+        var part_t = new (double rho, double u, double p)[PointsCount];
+        part_t[0] = (
+            (Ps[0].Density * (Ps[1].Velocity - Ps[0].Velocity) / Delta_x
+                + Ps[0].Velocity * (Ps[1].Density - Ps[0].Density) / Delta_x),
+            (Ps[0].Velocity * (Ps[1].Velocity - Ps[0].Velocity) / Delta_x
+                + (1 / Ps[0].Density) * (Ps[1].Pressure - Ps[0].Pressure) / Delta_x),
+            (Physics.gamma * Ps[0].Pressure * (Ps[1].Velocity - Ps[0].Velocity) / Delta_x
+                + Ps[0].Velocity * (Ps[1].Pressure - Ps[0].Pressure) / Delta_x)
+        );
+        for(int j = 0+1; j < Ps.Length-1; j++)
+        {
+            part_t[j] = (
+                (Ps[j].Density * (Ps[j + 1].Velocity - Ps[j - 1].Velocity) / Delta_x / 2
+                    + Ps[j].Velocity * (Ps[j + 1].Density - Ps[j - 1].Density) / Delta_x / 2),
+                (Ps[j].Velocity * (Ps[j + 1].Velocity - Ps[j - 1].Velocity) / Delta_x / 2
+                    + (1 / Ps[j].Density) * (Ps[j + 1].Pressure - Ps[j - 1].Pressure) / Delta_x / 2),
+                (Physics.gamma * Ps[j].Pressure * (Ps[j + 1].Velocity - Ps[j - 1].Velocity) / Delta_x / 2
+                    + Ps[j].Velocity * (Ps[j + 1].Pressure - Ps[j - 1].Pressure) / Delta_x / 2)
+            );
+        }
+        part_t[^1] = (
+            (Ps[^1].Density * (Ps[^1].Velocity - Ps[^2].Velocity) / Delta_x
+                + Ps[^1].Velocity * (Ps[^1].Density - Ps[^2].Density) / Delta_x),
+            (Ps[^1].Velocity * (Ps[^1].Velocity - Ps[^2].Velocity) / Delta_x
+                + (1 / Ps[^1].Density) * (Ps[^1].Pressure - Ps[^2].Pressure) / Delta_x),
+            (Physics.gamma * Ps[^1].Pressure * (Ps[^1].Velocity - Ps[^2].Velocity) / Delta_x
+                + Ps[^1].Velocity * (Ps[^1].Pressure - Ps[^2].Pressure) / Delta_x)
+        );
+        var next = new Physics[PointsCount];
+        for(int j = 0; j < PointsCount; j++)
+        {
+            next[j].Density =Math.Max(0, Ps[j].Density - part_t[j].rho * Delta_t);
+            next[j].Velocity = Ps[j].Velocity - part_t[j].u * Delta_t;
+            next[j].Pressure =Math.Max(0, Ps[j].Pressure - part_t[j].p * Delta_t);
+        }
+        points = next;
+    }
 }
