@@ -2,8 +2,8 @@
 
 public struct IdealGas()
 {
-    public double Pressure { get; set; } = 10;
-    public double Density { get; set; } = 10;
+    public double Pressure { get; set; } = 100000;
+    public double Density { get; set; } = 1.3;
 }
 
 public class PartitionedGas : IGas

@@ -70,7 +70,7 @@ public partial class MainWindow : Window
         }
     }
 
-    IGas gas = new PartitionedGas() { PointsCount=10000};
+    IGas gas = new PartitionedGas() { PointsCount = 10000 };
 
     public MainWindow()
     {
@@ -129,7 +129,7 @@ public partial class MainWindow : Window
         if(true // 对齐用
             && double.TryParse(Delta_tTextBox.Text, out var dt)
             && double.TryParse(Delta_xTextBox.Text, out var dx)
-            && double.TryParse(CFL_TextBox.Text,out var cfl))
+            && double.TryParse(CFL_TextBox.Text, out var cfl))
         {
             State = StateEnum.Working;
             gas = new FluentGas(gas)
@@ -148,9 +148,7 @@ public partial class MainWindow : Window
 
     async Task Next()
     {
-        await Task.Run(() => {
-            (gas as FluentGas)!.ForwardEularEx();
-        } );
+        await Task.Run((gas as FluentGas)!.ForwardEularEx);
         Delta_tTextBox.Text = $"{(gas as FluentGas)!.Delta_t}";
         Draw();
     }
@@ -167,27 +165,16 @@ public partial class MainWindow : Window
         PartitionPositionSlider.Value = 50;
     }
 
-    private void NextManyButton_Click(object sender, RoutedEventArgs e)
+    private async void NextManyButton_Click(object sender, RoutedEventArgs e)
     {
-        var dt = new System.Windows.Threading.DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(100)
-        };
-        var cnt = 0;
         State = StateEnum.Busy;
-        dt.Tick += async (_, _) =>
+        for(int i = 1; i <= 100; i++)
         {
+            StepCountTextBlock.Text = $"{i}/100";
             await Next();
-
-            if(++cnt > 500)
-            {
-                dt.Stop();
-                StepCountTextBlock.Text = $"";
-                State = StateEnum.Working;
-            }
-            StepCountTextBlock.Text = $"{cnt}";
-        };
-        dt.Start();
+        }
+        State = StateEnum.Working;
+        StepCountTextBlock.Text = "";
     }
 
     private void TestButton_Click(object sender, RoutedEventArgs e)
