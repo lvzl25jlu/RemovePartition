@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace RemovePartition;
 
@@ -131,7 +132,8 @@ public class FluentGas : IGas
         }
         points = next;
         //tex:$\Delta t=\text{CFL}\times\frac{\Delta x}{ \left|u\right|+c}$
-        Delta_t = CFL * Delta_x / (Ps.Select(p => p.SoundSpeed + Math.Abs(p.Velocity)).Max());
+
+        //Delta_t = CFL * Delta_x / (Ps.Select(p => p.SoundSpeed + Math.Abs(p.Velocity)).Max());
     }
 
     // 一阶欧拉向前差分改进版
@@ -154,7 +156,7 @@ public class FluentGas : IGas
             (Physics.gamma * Ps[0].Pressure * (Ps[1].Velocity - Ps[0].Velocity) / Delta_x
                 + Ps[0].Velocity * (Ps[1].Pressure - Ps[0].Pressure) / Delta_x)
         );
-        for(int j = 0+1; j < Ps.Length-1; j++)
+        for(int j = 0 + 1; j < Ps.Length - 1; j++)
         {
             part_t[j] = (
                 (Ps[j].Density * (Ps[j + 1].Velocity - Ps[j - 1].Velocity) / Delta_x / 2
@@ -176,9 +178,9 @@ public class FluentGas : IGas
         var next = new Physics[PointsCount];
         for(int j = 0; j < PointsCount; j++)
         {
-            next[j].Density =Math.Max(0, Ps[j].Density - part_t[j].rho * Delta_t);
+            next[j].Density = Math.Max(0, Ps[j].Density - part_t[j].rho * Delta_t);
             next[j].Velocity = Ps[j].Velocity - part_t[j].u * Delta_t;
-            next[j].Pressure =Math.Max(0, Ps[j].Pressure - part_t[j].p * Delta_t);
+            next[j].Pressure = Math.Max(0, Ps[j].Pressure - part_t[j].p * Delta_t);
         }
         points = next;
     }
