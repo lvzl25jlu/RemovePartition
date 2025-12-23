@@ -8,46 +8,6 @@ using System.Windows;
 
 namespace RemovePartition;
 
-//tex:用 $\rho$ 、 $u$ 、 $p$ 作为原始变量
-public struct Physics
-{
-    public static double gamma { get; set; } = 1.3f;
-    public double Density { get; set; }
-    public double Pressure { get; set; }
-    public double Velocity { get; set; }
-    //tex:$c=\sqrt{\gamma\frac p\rho}$
-    public readonly double SoundSpeed => Math.Sqrt(gamma * Pressure / Density);
-    public double U_rho
-    {
-        //tex: $U_\rho=\rho$
-        readonly get => Density;
-        //tex: $\rho=U_\rho$
-        set => Density = Math.Max(0, value);
-    }
-    public double U_p
-    {
-        //tex: $U_p=u\rho$
-        readonly get => Density * Velocity;
-        //tex: $u=\frac {U_p}\rho$
-        set => Velocity = Density < 1e-6 ? 0 : value / Density;
-    }
-    public double U_E
-    {
-        //tex: $U_E=\rho E=\frac{p}{\gamma-1}+\frac{1}{2}\rho u^2$
-        readonly get => Pressure / (gamma - 1) + Velocity.Square() / 2;
-        //tex: $p=\left(\gamma-1\right)\left(U_E-\frac 12\rho u^2\right)$
-        set => Pressure = ((gamma - 1) * (value - Density * Velocity.Square() / 2)).N0PX();
-    }
-
-    //tex: $F_\rho=\rho u$
-    public readonly double F_rho => Density * Velocity;
-    //tex: $F_p=\rho u^2+p$
-    public readonly double F_p => Density * Velocity.Square() + Pressure;
-    //tex: $F_E=u\left(\rho E+p\right)$ where $\rho E=U_E$
-    public readonly double F_E => Velocity * (U_E + Pressure);
-}
-
-
 
 public class FluentGas : IGas
 {
@@ -71,15 +31,15 @@ public class FluentGas : IGas
         }
     }
 
-    Physics[] points = [.. Enumerable.Repeat(new Physics(), IGas.DEFAULT_POINTS_COUNT)];
+    FluidVaribles[] points = [.. Enumerable.Repeat(new FluidVaribles(), IGas.DEFAULT_POINTS_COUNT)];
     // 起个短点的名字
-    Physics[] Ps => points;
+    FluidVaribles[] Ps => points;
 
     public int PointsCount
     {
         get => Ps.Length; set
         {
-            points = [.. Enumerable.Repeat(new Physics(), value)];
+            points = [.. Enumerable.Repeat(new FluidVaribles(), value)];
         }
     }
 
@@ -123,7 +83,7 @@ public class FluentGas : IGas
         );
         //tex: $$U^{\left(n+1\right)}=U^{\left(n\right)}
         //      -\frac {\partial F}{\partial x}\Delta t$$
-        var next = new Physics[PointsCount];
+        var next = new FluidVaribles[PointsCount];
         for(int j = 0; j < PointsCount; j++)
         {
             next[j].U_rho = Ps[j].U_rho - part_x_F[j].rho * Delta_t;
@@ -153,7 +113,7 @@ public class FluentGas : IGas
                 + Ps[0].Velocity * (Ps[1].Density - Ps[0].Density) / Delta_x),
             (Ps[0].Velocity * (Ps[1].Velocity - Ps[0].Velocity) / Delta_x
                 + (1 / Ps[0].Density) * (Ps[1].Pressure - Ps[0].Pressure) / Delta_x),
-            (Physics.gamma * Ps[0].Pressure * (Ps[1].Velocity - Ps[0].Velocity) / Delta_x
+            (FluidVaribles.SpecHeatRatio * Ps[0].Pressure * (Ps[1].Velocity - Ps[0].Velocity) / Delta_x
                 + Ps[0].Velocity * (Ps[1].Pressure - Ps[0].Pressure) / Delta_x)
         );
         for(int j = 0 + 1; j < Ps.Length - 1; j++)
@@ -163,7 +123,7 @@ public class FluentGas : IGas
                     + Ps[j].Velocity * (Ps[j + 1].Density - Ps[j - 1].Density) / Delta_x / 2),
                 (Ps[j].Velocity * (Ps[j + 1].Velocity - Ps[j - 1].Velocity) / Delta_x / 2
                     + (1 / Ps[j].Density) * (Ps[j + 1].Pressure - Ps[j - 1].Pressure) / Delta_x / 2),
-                (Physics.gamma * Ps[j].Pressure * (Ps[j + 1].Velocity - Ps[j - 1].Velocity) / Delta_x / 2
+                (FluidVaribles.SpecHeatRatio * Ps[j].Pressure * (Ps[j + 1].Velocity - Ps[j - 1].Velocity) / Delta_x / 2
                     + Ps[j].Velocity * (Ps[j + 1].Pressure - Ps[j - 1].Pressure) / Delta_x / 2)
             );
         }
@@ -172,10 +132,10 @@ public class FluentGas : IGas
                 + Ps[^1].Velocity * (Ps[^1].Density - Ps[^2].Density) / Delta_x),
             (Ps[^1].Velocity * (Ps[^1].Velocity - Ps[^2].Velocity) / Delta_x
                 + (1 / Ps[^1].Density) * (Ps[^1].Pressure - Ps[^2].Pressure) / Delta_x),
-            (Physics.gamma * Ps[^1].Pressure * (Ps[^1].Velocity - Ps[^2].Velocity) / Delta_x
+            (FluidVaribles.SpecHeatRatio * Ps[^1].Pressure * (Ps[^1].Velocity - Ps[^2].Velocity) / Delta_x
                 + Ps[^1].Velocity * (Ps[^1].Pressure - Ps[^2].Pressure) / Delta_x)
         );
-        var next = new Physics[PointsCount];
+        var next = new FluidVaribles[PointsCount];
         for(int j = 0; j < PointsCount; j++)
         {
             next[j].Density = Math.Max(0, Ps[j].Density - part_t[j].rho * Delta_t);
