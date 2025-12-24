@@ -7,85 +7,127 @@ using System.Threading.Tasks;
 namespace RemovePartition;
 internal class RoeFluxSolver : IFluxSolver
 {
-    // https://github.com/rustamNSU/GodunovsMethod/blob/master/src/RiemannSolvers.cpp
+    /// <summary>
+    /// 计算Roe格式的数值通量
+    /// </summary>
+    /// <param name="lFV">左侧单元的物理量</param>
+    /// <param name="rFV">右侧单元的物理量</param>
+    /// <returns>Roe数值通量</returns>
+    /// <remarks>
+    /// 实现参考：https://github.com/rustamNSU/GodunovsMethod/blob/master/src/RiemannSolvers.cpp
+    /// </remarks>
     public FluxVaribles CalculateFlux(FluidVaribles lFV, FluidVaribles rFV)
     {
-        double sqrtRhoL = Math.Sqrt(lFV.Density);
-        double sqrtRhoR = Math.Sqrt(rFV.Density);
-
-        // Roe average states
-        double aveVelocity = (sqrtRhoL * lFV.Velocity + sqrtRhoR * rFV.Velocity)
-            / (sqrtRhoL + sqrtRhoR);
-        double aveEnthalpy = (sqrtRhoL * lFV.Enthalpy + sqrtRhoR * rFV.U_E)
-            / (sqrtRhoL + sqrtRhoR);
-        double aveSoundSpeed = Math.Sqrt(
-            (FluidVaribles.SpecHeatRatio - 1) *
-            (aveEnthalpy - 0.5 * aveVelocity.Square())
-        );
-        double aveDensity = sqrtRhoL * sqrtRhoR;
-
-        double deltaDensity = rFV.Density - lFV.Density;
-        double deltaPressure = rFV.Pressure - lFV.Pressure;
-        double deltaVelocity = rFV.Velocity - lFV.Velocity;
-        double auxCoeff = 1 / aveSoundSpeed.Square();
-
-        double alpha1 = 0.5 * auxCoeff * (deltaPressure - aveSoundSpeed * aveDensity * deltaVelocity);
-        double alpha2 = deltaDensity - deltaPressure * auxCoeff;
-        double alpha3 = 0.5 * auxCoeff * (deltaPressure + aveSoundSpeed * aveDensity * deltaVelocity);
-        Vec3<double> alpha = (alpha1, alpha2, alpha3);
-
-
-        double eigenValue1 = aveVelocity - aveSoundSpeed;
-        double eigenValue2 = aveVelocity;
-        double eigenValue3 = aveVelocity + aveSoundSpeed;
-        Vec3<double> eigen = (eigenValue1, eigenValue2, eigenValue3);
-
-        // double xBoundary = 0;
-
-        Vec3<double> r1 = (
-            1.0,
-            aveVelocity - aveSoundSpeed,
-            aveEnthalpy - aveVelocity * aveSoundSpeed
-        );
-        Vec3<double> r2 = (
-            1.0,
-            aveVelocity,
-            0.5 * aveVelocity.Square()
-        );
-        Vec3<double> r3 = (
-            1.0,
-            aveVelocity + aveSoundSpeed,
-            aveEnthalpy + aveVelocity * aveSoundSpeed
-        );
-        Vec3<Vec3<double>> r = (r1, r2, r3);
-
-        Vec3<double> consercation = (Vec3<double>)lFV.U + (Vec3<double>)rFV.U;
-
+        //tex: 比热容比$\gamma$
         double gamma = FluidVaribles.SpecHeatRatio;
 
-        Vec3<double> temp = (
-            consercation[2],
-            (gamma - 3) * aveVelocity.Square() / 2 * consercation[1]
-                + (3 - gamma) * aveVelocity * consercation[2]
-                + (gamma - 1) * consercation[3],
-            ((gamma - 1) * Math.Pow(aveVelocity, 3) / 2 - aveVelocity * aveEnthalpy) * consercation[1]
-                + (aveEnthalpy - (gamma - 1) * aveVelocity.Square()) * consercation[2]
-                + gamma * aveVelocity * consercation[3]
+        //tex: $\sqrt{\rho_L}$ 
+        double sqrtRhoL = Math.Sqrt(lFV.Density);
+        //tex: $\sqrt{\rho_R}$
+        double sqrtRhoR = Math.Sqrt(rFV.Density);
+
+        //tex:速度的Roe平均 $\bar{u}=\frac{\sqrt{\rho_L}u_L+\sqrt{\rho_R}*u_R}{\sqrt{\rho_L}+\sqrt{\rho_R}}$
+        double aveVelocity = (sqrtRhoL * lFV.Velocity + sqrtRhoR * rFV.Velocity)
+            / (sqrtRhoL + sqrtRhoR);
+        //tex:焓的Roe平均 $\bar{h} = \frac{\sqrt{\rho_L} h_L + \sqrt{\rho_R} h_R}{\sqrt{\rho_L} + \sqrt{\rho_R}}$
+        double aveEnthalpy = (sqrtRhoL * lFV.Enthalpy + sqrtRhoR * rFV.Enthalpy)
+            / (sqrtRhoL + sqrtRhoR);
+        //tex:平均声速 $\bar{c}=\sqrt{\left(\gamma-1\right)\left(\bar{h}-\frac{\bar{u}^2}2\right)}$
+        double aveSoundSpeed = Math.Sqrt(
+            (gamma - 1) *
+            (aveEnthalpy - aveVelocity.Square() / 2)
+        );
+        //tex:$\bar{\rho}=\sqrt{\rho_L\rho_R}$
+        double aveDensity = sqrtRhoL * sqrtRhoR;
+
+        //tex: $\Delta \rho = \rho_R - \rho_L$
+        double deltaDensity = rFV.Density - lFV.Density;
+        //tex: $\Delta p = p_R - p_L$
+        double deltaPressure = rFV.Pressure - lFV.Pressure;
+        //tex: $\Delta u = u_R - u_L$
+        double deltaVelocity = rFV.Velocity - lFV.Velocity;
+        //tex: 辅助（auxiliary）变量$\frac 1{\bar{c}^2}$
+        double aux = 1 / aveSoundSpeed.Square();
+
+        //tex:波强系数
+        //$
+        //  \mathbf\alpha=\begin{pmatrix}
+        //      \frac{1}{2} \frac 1{\bar{c}^2}\left(\Delta p - \bar{c} \bar{\rho} \Delta u\right)\\
+        //      \left(\rho_R - \rho_L\right) -  \frac 1{\bar{c}^2}\Delta p\\
+        //      \frac{1}{2} \frac 1{\bar{c}^2} \left(\Delta p + \bar{c} \bar{\rho} \Delta u\right)\\
+        //  \end{pmatrix}
+        //$
+        Vec3<double> alpha = (
+            0.5 * aux * (deltaPressure - aveSoundSpeed * aveDensity * deltaVelocity),
+            deltaDensity - deltaPressure * aux,
+            0.5 * aux * (deltaPressure + aveSoundSpeed * aveDensity * deltaVelocity)
         );
 
-        //flux = 0.5 * temp - 0.5 * (
-        //          Math.Abs(eigenValue1) * alpha1 * r1
-        //          + Math.Abs(eigenValue2) * alpha2 * r2
-        //          + Math.Abs(eigenValue3) * alpha3 * r3
-        //    );
+        //tex: 特征值
+        //$
+        //  \mathbf\lambda=\begin{pmatrix}
+        //      \bar{u} - \bar{c}\\
+        //      \bar{u} \\
+        //      \bar{u} + \bar{c}\\
+        //  \end{pmatrix}
+        //$
+        Vec3<double> eigen = (
+            aveVelocity - aveSoundSpeed,
+            aveVelocity,
+            aveVelocity + aveSoundSpeed
+        );
 
+        //tex: 右特征向量矩阵
+        //$
+        //  \mathbf{r} = \begin{pmatrix}
+        //       \begin{pmatrix} 1 & \bar{u} - \bar{c} & \bar{h} - \bar{u} \bar{c} \end{pmatrix}^T\\
+        //       \begin{pmatrix} 1 & \bar{u} & \frac{\bar{u}^2}{2} \end{pmatrix}^T\\
+        //       \begin{pmatrix} 1 & \bar{u} + \bar{c} & \bar{h} + \bar{u} \bar{c} \end{pmatrix}^T\\
+        //   \end{pmatrix}^T
+        //$
+        Vec3<Vec3<double>> r = (
+            (1.0, aveVelocity - aveSoundSpeed, aveEnthalpy - aveVelocity * aveSoundSpeed),
+            (1.0, aveVelocity, 0.5 * aveVelocity.Square()),
+            (1.0, aveVelocity + aveSoundSpeed, aveEnthalpy + aveVelocity * aveSoundSpeed)
+        );
+
+        //tex:Roe格式通量
+        //$$
+        //  \mathbf{F}_{\text{Roe}} = \frac 12 \left( \mathbf{F}\left(\mathbf{U}_L\right) + \mathbf{F}\left(\mathbf{U}_R\right) - \sum_{k=1}^{3} \left|\lambda_k\right| \alpha_k \mathbf{r}_k \right)
+        //$$
+        //  其中 
+        //$$
+        //  \mathbf{F}\left(\mathbf{U}_L\right) + \mathbf{F}\left(\mathbf{U}_R\right)
+        //  = \bar{\mathbf{A}} \mathbf{U}_L + \bar{\mathbf{A}} \mathbf{U}_R 
+        //  = \bar{\mathbf{A}} \left(\mathbf{U}_L + \mathbf{U}_R \right)
+        //$$
+        //  其中
+        //$$
+        //  \bar{\mathbf{A}}=\begin{pmatrix}
+        //      0& 1 & 0 \\
+        //      \frac{\gamma-3}2 \bar{u}^2 & (3-\gamma)\bar{u} & \gamma-1 \\
+        //      \left(\frac{\gamma-1}2 \bar{u}^3 - \bar{u}\bar{h}\right) & \left(\bar{h} - (\gamma-1)\bar{u}^2\right) & \gamma \bar{u}
+        //  \end{pmatrix}
+        //$$
+
+        //tex:$\mathbf{U}_L + \mathbf{U}_R$
+        Vec3<double> sumU = (Vec3<double>)lFV.U + (Vec3<double>)rFV.U;
+        //tex:先算$\bar{\mathbf{A}}\left(\mathbf{U}_L + \mathbf{U}_R\right)$
+        Vec3<double> flux = (
+            sumU[2],
+            (gamma - 3) * aveVelocity.Square() / 2 * sumU[1]
+                + (3 - gamma) * aveVelocity * sumU[2]
+                + (gamma - 1) * sumU[3],
+            ((gamma - 1) * Math.Pow(aveVelocity, 3) / 2 - aveVelocity * aveEnthalpy) * sumU[1]
+                + (aveEnthalpy - (gamma - 1) * aveVelocity.Square()) * sumU[2]
+                + gamma * aveVelocity * sumU[3]
+        );
+        //tex: 减去特征分解项$\sum\limits_{k=1}^{3} \left|\lambda_k\right| \alpha_k \mathbf{r}_k$
         for(int i = 1; i <= 3; i++)
         {
-            temp -= Math.Abs(eigen[i]) * alpha[i] * r[i];
+            flux -= Math.Abs(eigen[i]) * alpha[i] * r[i];
         }
-
-        FluxVaribles flux = 0.5 * temp;
-
-        return flux;
+        //tex: 最后乘以$\frac 12$
+        return 0.5 * flux;
     }
 }

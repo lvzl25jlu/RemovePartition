@@ -67,7 +67,7 @@ public struct FluidVaribles
         set => Pressure = (gamma - 1) * (value - rho * u * u / 2);
     }
 
-    //tex: $F_\rho=\rho u$
+    //tex: $F_\rho=\rho u=U_p$
     public readonly double F_rho => rho * u;
     //tex: $F_p=\rho u^2+p$
     public readonly double F_p => rho * u * u + p;
