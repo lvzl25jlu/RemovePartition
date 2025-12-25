@@ -6,10 +6,27 @@ using System.Threading.Tasks;
 
 namespace RemovePartition;
 
-internal class Godunov : IGas
+partial class FluentGas
 {
-    public int PointsCount { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public double[] Densitys => throw new NotImplementedException();
+    public void Godunov(FluxCalculator fluxCal)
+    {
+        FluxVaribles[] fluxs = [.. Ps[1..].Select((_, i) =>
+            fluxCal(Ps[i], Ps[i+1])
+        )];
 
-    public double[] Pressures => throw new NotImplementedException();
+        FluidVaribles[] next = [.. Ps];
+
+        //  一阶欧拉
+        for(int i = 1; i < fluxs.Length; i++)
+        {
+            //tex: $$\Delta U = \frac{F_{i+1}-F_{i}}{\Delta x}\Delta t$$
+            var dU = new FluidVaribles
+            {
+                ConservedVariables = (fluxs[i] - fluxs[i - 1])
+                    / Delta_x * Delta_t
+            };
+            //tex: $$U_{i}^{\left(n+1\right)}=U_{i}^{\left(n\right)} - \Delta U$$
+            next[i] = Ps[i] - dU;
+        }
+    }
 }

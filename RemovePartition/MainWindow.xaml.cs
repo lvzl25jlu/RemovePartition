@@ -151,6 +151,29 @@ public partial class MainWindow : Window
         };
 
         Draw();
+
+        //下拉菜单
+        foreach(var method in Enum.GetValues<FluentGas.MainMethodEnum>())
+        {
+            MainMethodComBox.Items.Add(new ComboBoxItem
+            {
+                Content = $"{method}",
+            });
+        }
+        foreach(var method in Enum.GetValues<FluentGas.FluxMethodEnum>())
+        {
+            FluxMethodComBox.Items.Add(new ComboBoxItem
+            {
+                Content = $"{method}",
+            });
+        }
+        foreach(var method in Enum.GetValues<FluentGas.TimeAdvanceMethodEnum>())
+        {
+            AdvanceMethodComBox.Items.Add(new ComboBoxItem
+            {
+                Content = $"{method}",
+            });
+        }
     }
 
     private void Draw()
@@ -209,8 +232,26 @@ public partial class MainWindow : Window
     async Task Next()
     {
         await Task.Run((gas as FluentGas)!.ForwardEular);
-        Delta_tTextBox.Text = $"{(gas as FluentGas)!.Delta_t}";
-        Draw();
+
+        if(MainMethodComBox.SelectedItem is ComboBoxItem mainMethodItem
+            && Enum.TryParse<FluentGas.MainMethodEnum>(mainMethodItem.Content.ToString(), out var mainMethod))
+        {
+            switch(mainMethod)
+            {
+                case FluentGas.MainMethodEnum.Godunov:
+                    await Task.Run(() =>
+                    {
+                        (gas as FluentGas)!.Godunov(TheRoeFluxCalculator.RoeFluxCalculator);
+                    });
+                    break;
+                case FluentGas.MainMethodEnum.DG:
+                    break;
+                default: MessageBox.Show("未知主方法"); break;
+            }
+
+            Delta_tTextBox.Text = $"{(gas as FluentGas)!.Delta_t}";
+            Draw();
+        }
     }
 
     private async void NextStepButton_Click(object sender, RoutedEventArgs e)

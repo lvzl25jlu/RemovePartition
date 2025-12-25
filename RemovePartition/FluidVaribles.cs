@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RemovePartition;
 
-public struct FluidVaribles
+public struct FluidVaribles:IVec3<double>
 {
     //tex: $\gamma$
     public static double SpecHeatRatio { get => gamma; set => gamma = value; }
@@ -75,6 +75,33 @@ public struct FluidVaribles
     public readonly double F_E => u * (U_E + p);
 
     //tex:$U=\begin{pmatrix}U_\rho\\U_p\\U_E\end{pmatrix}$
-    public readonly (double rho, double p, double E) U => (U_rho, U_p, U_E);
-    public readonly (double rho, double p, double E) ConservedVariables => U;
+    public Vec3<double> U
+    {
+        readonly get => (U_rho, U_p, U_E);
+        set => (U_rho, U_p, U_E) = ((double, double, double))value;
+    }
+    //  就是U，但是名字更长
+    public Vec3<double> ConservedVariables
+    {
+        readonly get => (U_rho, U_p, U_E);
+        set => (U_rho, U_p, U_E) = ((double, double,double))value;
+    }
+
+    public double this[int index]
+    {
+        readonly get => index switch
+        {
+            1 => U_rho,
+            2 => U_p,
+            3 => U_E,
+            _ => throw new IndexOutOfRangeException(),
+        };
+        set => _ = index switch
+        {
+            1 => U_rho = value,
+            2 => U_p = value,
+            3 => U_E = value,
+            _ => throw new IndexOutOfRangeException(),
+        };
+    }
 }

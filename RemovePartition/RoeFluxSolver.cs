@@ -80,10 +80,10 @@ static class TheRoeFluxCalculator
         //tex: 右特征向量矩阵
         //$
         //  \mathbf{r} = \begin{pmatrix}
-        //       \begin{pmatrix} 1 & \bar{u} - \bar{c} & \bar{h} - \bar{u} \bar{c} \end{pmatrix}^T\\
-        //       \begin{pmatrix} 1 & \bar{u} & \frac{\bar{u}^2}{2} \end{pmatrix}^T\\
-        //       \begin{pmatrix} 1 & \bar{u} + \bar{c} & \bar{h} + \bar{u} \bar{c} \end{pmatrix}^T\\
-        //   \end{pmatrix}^T
+        //       \begin{pmatrix} 1 & \bar{u} - \bar{c} & \bar{h} - \bar{u} \bar{c} \end{pmatrix}^V\\
+        //       \begin{pmatrix} 1 & \bar{u} & \frac{\bar{u}^2}{2} \end{pmatrix}^V\\
+        //       \begin{pmatrix} 1 & \bar{u} + \bar{c} & \bar{h} + \bar{u} \bar{c} \end{pmatrix}^V\\
+        //   \end{pmatrix}^V
         //$
         Vec3<Vec3<double>> r = (
             (1.0, aveVelocity - aveSoundSpeed, aveEnthalpy - aveVelocity * aveSoundSpeed),
