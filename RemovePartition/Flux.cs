@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace RemovePartition;
 
+delegate FluxVaribles FluxCalculator(FluidVaribles lFV, FluidVaribles rFV);
+
 struct FluxVaribles
 {
     public double F_rho { get; set; }
@@ -17,14 +19,9 @@ struct FluxVaribles
     public static implicit operator FluxVaribles(Vec3<double> that) =>
         new()
         {
-            F_rho = vec[0],
-            F_p = vec[1],
-            F_E = vec[2],
+            F_rho = that[1],
+            F_p = that[2],
+            F_E = that[3],
         };
 }
 
-
-internal interface IFluxSolver
-{
-    public FluxVaribles CalculateFlux(FluidVaribles lFV, FluidVaribles rFV);
-}

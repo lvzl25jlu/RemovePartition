@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace RemovePartition;
-internal class RoeFluxSolver : IFluxSolver
+static class TheRoeFluxCalculator
 {
     /// <summary>
     /// 计算Roe格式的数值通量
@@ -16,7 +16,7 @@ internal class RoeFluxSolver : IFluxSolver
     /// <remarks>
     /// 实现参考：https://github.com/rustamNSU/GodunovsMethod/blob/master/src/RiemannSolvers.cpp
     /// </remarks>
-    public FluxVaribles CalculateFlux(FluidVaribles lFV, FluidVaribles rFV)
+    public static FluxVaribles RoeFluxCalculator(FluidVaribles lFV, FluidVaribles rFV)
     {
         //tex: 比热容比$\gamma$
         double gamma = FluidVaribles.SpecHeatRatio;
