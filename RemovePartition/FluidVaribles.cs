@@ -23,7 +23,7 @@ public struct FluidVaribles:IVec3<double>
         readonly get => rho;
         set
         {
-            ArgumentOutOfRangeException.ThrowIfNegative(value);
+            //ArgumentOutOfRangeException.ThrowIfNegative(value);
             rho = value;
         }
     }
@@ -32,7 +32,7 @@ public struct FluidVaribles:IVec3<double>
         readonly get => p;
         set
         {
-            ArgumentOutOfRangeException.ThrowIfNegative(value);
+            //ArgumentOutOfRangeException.ThrowIfNegative(value);
             p = value;
         }
     }

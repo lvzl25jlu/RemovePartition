@@ -19,7 +19,6 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -29,10 +28,34 @@
                     <Label Content="分隔位置"/>
                     <Slider Width="200" Value="50" Maximum="99" Minimum="1" x:Name="PartitionPositionSlider"/>
                 </StackPanel>
-                <local:LabelTextBox x:Name="LDensityLTB" Grid.Row="1" Grid.Column="0" Label="左侧密度" Text="1"/>
-                <local:LabelTextBox x:Name="RDensityLTB" Grid.Row="1" Grid.Column="1" Label="右侧密度" Text="1"/>
-                <local:LabelTextBox x:Name="LPressureLTB" Grid.Row="2" Grid.Column="0" Label="左侧压强" Text="1"/>
-                <local:LabelTextBox x:Name="RPressureLTB" Grid.Row="2" Grid.Column="1" Label="右侧压强" Text="1"/>
+                <Grid Grid.Column="0" Grid.Row="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="左侧密度" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBox x:Name="LDensity_TB"  Grid.Row="0" Grid.Column="1"/>
+                    <Label Content="左侧压强" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBox x:Name="LPressure_TB" Grid.Row="1" Grid.Column="1"/>
+                </Grid>
+                <Grid Grid.Column="1" Grid.Row="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="右侧密度" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBox x:Name="RDensity_TB"  Grid.Row="0" Grid.Column="1"/>
+                    <Label Content="右侧压强" Grid.Row="1" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBox x:Name="RPressure_TB"  Grid.Row="1" Grid.Column="1"/>
+                </Grid>
             </Grid>
             <!--网格参数-->
             <Grid>
@@ -46,13 +69,26 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Label  Content="Δx" Grid.Row="0"  Grid.Column="0" />
-                <TextBox x:Name="Delta_xTextBox"   Grid.Row="0"  Grid.Column="1" Text="0.01" Width="50" IsEnabled="False"/>
+                <TextBox x:Name="Delta_x_TB"   Grid.Row="0"  Grid.Column="1" Width="50" IsEnabled="False"/>
                 <Label Content="Δt" Grid.Row="1"  Grid.Column="0"/>
-                <TextBox x:Name="Delta_tTextBox"  Grid.Row="1"  Grid.Column="1" Text="0.1" Width="50"/>
+                <TextBox x:Name="Delta_t_TB"  Grid.Row="1"  Grid.Column="1" Width="50"/>
                 <Label Content="CFL" Grid.Row="2"  Grid.Column="0"/>
-                <TextBox x:Name="CFL_TextBox" Grid.Row="2"  Grid.Column="1"  Text="0.5" Width="50"/>
+                <TextBox x:Name="CFL_TB" Grid.Row="2"  Grid.Column="1"  Width="50"/>
             </Grid>
-            <!--控制区域-->
+            <!--信息展示-->
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Label Content="当前时刻" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock x:Name="CurTime_TB" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Label Content="当前步数" Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <TextBlock x:Name="StepCnt_TB" Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Grid>
+            <!--几个按钮-->
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -68,8 +104,8 @@
                 <Button x:Name="NextStepButton" Grid.Column="0"  Grid.Row="1" Content="下一步" Margin="10,1,0,1" Click="NextStepButton_Click"/>
                 <Button x:Name="NextManyButton" Grid.Column="1"  Grid.Row="1" Content="下几步" Margin="10,1,0,1" Click="NextManyButton_Click"/>
                 <Button x:Name="TestButton" Grid.Column="0"  Grid.Row="2" Content="测试" Margin="10,1,0,1" Click="TestButton_Click"/>
-                <TextBlock x:Name="StepCountTextBlock" Grid.Column="1"  Grid.Row="2" Margin="10,0,0,0"/>
             </Grid>
+            <!--方法选择-->
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -81,13 +117,13 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Label Content="主要方法" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="0"/>
-                <ComboBox x:Name="MainMethodComBox" Width="120" Margin="10,0,0,0" Grid.Column="1" Grid.Row="0">
+                <ComboBox x:Name="MainMethod_CB" Width="120" Margin="10,0,0,0" Grid.Column="1" Grid.Row="0">
                 </ComboBox>
                 <Label Content="通量方法" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="1"/>
-                <ComboBox x:Name="FluxMethodComBox" Width="120" Margin="10,0,0,0" Grid.Column="1" Grid.Row="1">
+                <ComboBox x:Name="FluxMethod_CB" Width="120" Margin="10,0,0,0" Grid.Column="1" Grid.Row="1">
                 </ComboBox>
                 <Label Content="推进方法" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="2"/>
-                <ComboBox x:Name="AdvanceMethodComBox" Width="120" Margin="10,0,0,0" Grid.Column="1" Grid.Row="2">
+                <ComboBox x:Name="AdvanceMethod_CB" Width="120" Margin="10,0,0,0" Grid.Column="1" Grid.Row="2">
                 </ComboBox>
             </Grid>
         </StackPanel>
@@ -103,8 +139,8 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition  Height="Auto"/>
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="100" x:Name="DensityMaxTextBlock" TextWrapping="NoWrap" VerticalAlignment="Bottom"/>
-                <Canvas Grid.Row="1" Background="LightGray"  x:Name="DensityCanvas" Margin="10,0,10,0"/>
+                <TextBlock Grid.Row="0" Text="2" x:Name="DensityMax_TB" TextWrapping="NoWrap" VerticalAlignment="Bottom"/>
+                <Canvas Grid.Row="1" Background="LightGray"  x:Name="Density_Canvas" Margin="10,0,10,0"/>
                 <TextBlock Grid.Row="2" Text="0" x:Name="DensityMinTextBlock"  TextWrapping="NoWrap" VerticalAlignment="Top"/>
             </Grid>
         </Grid>
@@ -120,8 +156,8 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition  Height="Auto"/>
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="100" x:Name="PressureMaxTextBlock" TextWrapping="NoWrap" VerticalAlignment="Bottom"/>
-                <Canvas Grid.Row="1" Background="LightGray"  x:Name="PressureCanvas" Margin="10,0,10,0"/>
+                <TextBlock Grid.Row="0" Text="2" x:Name="PressureMax_TB" TextWrapping="NoWrap" VerticalAlignment="Bottom"/>
+                <Canvas Grid.Row="1" Background="LightGray"  x:Name="Pressure_Canvas" Margin="10,0,10,0"/>
                 <TextBlock Grid.Row="2" Text="0" x:Name="PressureMinTextBlock"  TextWrapping="NoWrap" VerticalAlignment="Top"/>
             </Grid>
         </Grid>
@@ -137,9 +173,9 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition  Height="Auto"/>
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="100" x:Name="VelocityMaxTextBlock" TextWrapping="NoWrap" VerticalAlignment="Bottom"/>
-                <Canvas Grid.Row="1" Background="LightGray" x:Name="VelocityCanvas" Margin="10,0,10,0"/>
-                <TextBlock Grid.Row="2" Text="-100" x:Name="VelocityMinTextBlock"  TextWrapping="NoWrap" VerticalAlignment="Top"/>
+                <TextBlock Grid.Row="0" Text="1" x:Name="VelocityMax_TB" TextWrapping="NoWrap" VerticalAlignment="Bottom"/>
+                <Canvas Grid.Row="1" Background="LightGray" x:Name="Velocity_Canvas" Margin="10,0,10,0"/>
+                <TextBlock Grid.Row="2" Text="-1" x:Name="VelocityMin_TB"  TextWrapping="NoWrap" VerticalAlignment="Top"/>
             </Grid>
         </Grid>
     </Grid>

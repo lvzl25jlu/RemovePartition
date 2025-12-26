@@ -48,7 +48,7 @@ static class IVec3DoubleExt
             [2] = lsh[2] + rsh[2],
             [3] = lsh[3] + rsh[3],
         };
-        public static U operator -(U lsh, V rsh) => new()
+        public static Vec3<double> operator -(U lsh, V rsh) => new()
         {
             [1] = lsh[1] - rsh[1],
             [2] = lsh[2] - rsh[2],
@@ -100,7 +100,7 @@ public struct Vec3<T> :
 
     public static implicit operator (T, T, T)(Vec3<T> vector) =>
         (vector.Value1, vector.Value2, vector.Value3);
-    
+
     public static Vec3<T> operator +(Vec3<T> lsh, Vec3<T> rsh) => new()
     {
         Value1 = lsh.Value1 + rsh.Value1,

@@ -12,6 +12,8 @@ namespace RemovePartition;
 partial class FluentGas : IGas
 {
     public const double DEFAULT_CFL = 0.3;
+    public const double DEFAULT_DX = 0.01;
+    public const double DEFAULT_DT = 0.001;
 
     public FluentGas()
     {
@@ -43,9 +45,9 @@ partial class FluentGas : IGas
         }
     }
 
-    public double Delta_x { get; set; } = 0.01;
-    public double Delta_t { get; set; } = 0.001;
-    public double CFL { get; set; }
+    public double Delta_x { get; set; } = DEFAULT_DX;
+    public double Delta_t { get; set; } = DEFAULT_DT;
+    public double CFL { get; set; } = DEFAULT_CFL;
 
     public double[] Densitys => [.. Ps.Select(p => p.Density)];
     public double[] Pressures => [.. Ps.Select(p => p.Pressure)];
