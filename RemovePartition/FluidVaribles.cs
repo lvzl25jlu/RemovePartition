@@ -86,6 +86,9 @@ public struct FluidVaribles:IVec3<double>
         readonly get => (U_rho, U_p, U_E);
         set => (U_rho, U_p, U_E) = ((double, double,double))value;
     }
+    //tex:$F=\begin{pmatrix}F_\rho\\F_p\\F_E\end{pmatrix}$
+    public readonly Vec3<double> F => (F_rho, F_p, F_E);
+    
 
     public double this[int index]
     {

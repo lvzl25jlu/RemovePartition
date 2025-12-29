@@ -25,7 +25,7 @@ partial class FluentGas : IGas
         PointsCount = that.PointsCount;
         //手动缓存优化
         var (densitys, pressures, velocitys) = (that.Densitys, that.Pressures, that.Velocitys);
-        for(int i = 0; i < PointsCount; i++)
+        for (int i = 0; i < PointsCount; i++)
         {
             Ps[i].Density = densitys[i];
             Ps[i].Pressure = pressures[i];
@@ -62,6 +62,8 @@ partial class FluentGas : IGas
     public enum FluxMethodEnum
     {
         Roe,
+        LaxFriedrichs,
+        HLL,
         HLLC
     }
 

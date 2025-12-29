@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RemovePartition;
 
-delegate FluxVaribles FluxCalculator(FluidVaribles lFV, FluidVaribles rFV);
+delegate FluxVaribles FluxCalculator(FluidVaribles le, FluidVaribles ri);
 
 struct FluxVaribles : IVec3<double>
 {

@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -294,27 +295,42 @@ public partial class MainWindow : Window
 
     async Task Next()
     {
-        if ( Enum.TryParse<FluentGas.MainMethodEnum>((MainMethod_CB.SelectedItem 
-            as ComboBoxItem)!.Content.ToString(), out var mainMethod))
+        var dt = (gas as FluentGas)!.Delta_t;
+        try
         {
-            curTime += (gas as FluentGas)!.Delta_t;
-            stepCnt += 1;
+            FluxCalculator fluxMethod = Enum.Parse<FluentGas.FluxMethodEnum>(
+                (FluxMethod_CB.SelectedItem as ComboBoxItem)!.Content.ToString()!) switch
+            {
+                FluentGas.FluxMethodEnum.Roe => FluxCalculators.Roe,
+                FluentGas.FluxMethodEnum.LaxFriedrichs => FluxCalculators.LaxFriedrichs,
+                FluentGas.FluxMethodEnum.HLL => FluxCalculators.HLL,
+                FluentGas.FluxMethodEnum.HLLC => FluxCalculators.HLLC,
+                _ => throw new UnreachableException(),
+            };
+            var mainMethod = Enum.Parse<FluentGas.MainMethodEnum>(
+                (MainMethod_CB.SelectedItem as ComboBoxItem)!.Content.ToString()!);
             switch (mainMethod)
             {
                 case FluentGas.MainMethodEnum.Godunov:
                     await Task.Run(() =>
                     {
-                        (gas as FluentGas)!.Godunov(TheRoeFluxCalculator.RoeFluxCalculator);
+                        (gas as FluentGas)!.Godunov(fluxMethod);
                     });
                     break;
-                case FluentGas.MainMethodEnum.DG:
-                    break;
-                default: MessageBox.Show("未知主方法"); break;
+                case FluentGas.MainMethodEnum.DG: break;
+                default: throw new UnreachableException();
             }
-
-            Delta_t_TB.Text = $"{(gas as FluentGas)!.Delta_t}";
-            Draw();
         }
+        catch (Exception)
+        {
+            MessageBox.Show("请检查下拉菜单");
+            return;
+        }
+
+        curTime += dt;
+        stepCnt += 1;
+        Delta_t_TB.Text = $"{(gas as FluentGas)!.Delta_t}";
+        Draw();
     }
 
     private async void NextStepButton_Click(object sender, RoutedEventArgs e)

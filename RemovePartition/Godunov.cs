@@ -35,7 +35,7 @@ partial class FluentGas
             //tex: $$\Delta U = \frac{F_{i+1}-F_{i}}{\Delta x}\Delta t$$
             var dU = new FluidVaribles
             {
-                ConservedVariables = (fluxs[i + 1] - fluxs[i]) * aux
+                U = (fluxs[i + 1] - fluxs[i]) * aux
             };
             //tex: $$U_{i}^{\left(n+1\right)}=U_{i}^{\left(n\right)} - \Delta U$$
             next[i].U -= dU;

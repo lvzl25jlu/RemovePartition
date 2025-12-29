@@ -57,7 +57,7 @@ static class IVec3DoubleExt
     }
 }
 
-public struct Vec3<T> :
+public struct Vec3<T>(T rho, T u, T p) :
     IVec3<T>,
     IAdditionOperators<Vec3<T>, Vec3<T>, Vec3<T>>,
     ISubtractionOperators<Vec3<T>, Vec3<T>, Vec3<T>>,
@@ -69,9 +69,9 @@ public struct Vec3<T> :
     IMultiplyOperators<T, T, T>,
     IDivisionOperators<T, T, T>
 {
-    public T Value1;
-    public T Value2;
-    public T Value3;
+    public T Value1 = rho;
+    public T Value2 = u;
+    public T Value3 = p;
     public T this[int index]
     {
         readonly get => index switch
@@ -88,7 +88,7 @@ public struct Vec3<T> :
             3 => Value3 = value,
             _ => throw new IndexOutOfRangeException(),
         };
-        
+
     }
 
     public static implicit operator Vec3<T>((T, T, T) tuple) => new()

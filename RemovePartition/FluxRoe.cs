@@ -5,49 +5,50 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace RemovePartition;
-static class TheRoeFluxCalculator
+
+static partial class FluxCalculators
 {
     /// <summary>
     /// 计算Roe格式的数值通量
     /// </summary>
-    /// <param name="lFV">左侧单元的物理量</param>
-    /// <param name="rFV">右侧单元的物理量</param>
-    /// <returns>Roe数值通量</returns>
+    /// <param name="le">左侧单元的物理量</param>
+    /// <param name="ri">右侧单元的物理量</param>
+    /// <returns> Roe 数值通量</returns>
     /// <remarks>
     /// 实现参考：https://github.com/rustamNSU/GodunovsMethod/blob/master/src/RiemannSolvers.cpp
     /// </remarks>
-    public static FluxVaribles RoeFluxCalculator(FluidVaribles lFV, FluidVaribles rFV)
+    public static FluxVaribles Roe(FluidVaribles le, FluidVaribles ri)
     {
         //tex: 比热容比$\gamma$
         double gamma = FluidVaribles.SpecHeatRatio;
 
         //tex: $\sqrt{\rho_L}$ 
-        double sqrtRhoL = Math.Sqrt(lFV.Density);
+        double sqrtRhoL = Math.Sqrt(le.Density);
         //tex: $\sqrt{\rho_R}$
-        double sqrtRhoR = Math.Sqrt(rFV.Density);
+        double sqrtRhoR = Math.Sqrt(ri.Density);
 
         //tex:速度的Roe平均 $\bar{u}=\frac{\sqrt{\rho_L}u_L+\sqrt{\rho_R}*u_R}{\sqrt{\rho_L}+\sqrt{\rho_R}}$
-        double aveVelocity = (sqrtRhoL * lFV.Velocity + sqrtRhoR * rFV.Velocity)
+        double aveVelocity = (sqrtRhoL * le.Velocity + sqrtRhoR * ri.Velocity)
             / (sqrtRhoL + sqrtRhoR);
         //tex:焓的Roe平均 $\bar{h} = \frac{\sqrt{\rho_L} h_L + \sqrt{\rho_R} h_R}{\sqrt{\rho_L} + \sqrt{\rho_R}}$
-        double aveEnthalpy = (sqrtRhoL * lFV.Enthalpy + sqrtRhoR * rFV.Enthalpy)
+        double aveEnthalpy = (sqrtRhoL * le.Enthalpy + sqrtRhoR * ri.Enthalpy)
             / (sqrtRhoL + sqrtRhoR);
         //tex:平均声速 $\bar{c}=\sqrt{\left(\gamma-1\right)\left(\bar{h}-\frac{\bar{u}^2}2\right)}$
         double aveSoundSpeed = Math.Sqrt(
             (gamma - 1) *
-            (aveEnthalpy - aveVelocity.Square() / 2)
+            (aveEnthalpy - aveVelocity.Square / 2)
         );
         //tex:$\bar{\rho}=\sqrt{\rho_L\rho_R}$
         double aveDensity = sqrtRhoL * sqrtRhoR;
 
         //tex: $\Delta \rho = \rho_R - \rho_L$
-        double deltaDensity = rFV.Density - lFV.Density;
+        double deltaDensity = ri.Density - le.Density;
         //tex: $\Delta p = p_R - p_L$
-        double deltaPressure = rFV.Pressure - lFV.Pressure;
+        double deltaPressure = ri.Pressure - le.Pressure;
         //tex: $\Delta u = u_R - u_L$
-        double deltaVelocity = rFV.Velocity - lFV.Velocity;
+        double deltaVelocity = ri.Velocity - le.Velocity;
         //tex: 辅助（auxiliary）变量$\frac 1{\bar{c}^2}$
-        double aux = 1 / aveSoundSpeed.Square();
+        double aux = 1 / aveSoundSpeed.Square;
 
         //tex:波强系数
         //$
@@ -87,7 +88,7 @@ static class TheRoeFluxCalculator
         //$
         Vec3<Vec3<double>> r = (
             (1.0, aveVelocity - aveSoundSpeed, aveEnthalpy - aveVelocity * aveSoundSpeed),
-            (1.0, aveVelocity, 0.5 * aveVelocity.Square()),
+            (1.0, aveVelocity, 0.5 * aveVelocity.Square),
             (1.0, aveVelocity + aveSoundSpeed, aveEnthalpy + aveVelocity * aveSoundSpeed)
         );
 
@@ -111,15 +112,15 @@ static class TheRoeFluxCalculator
         //$$
 
         //tex:$\mathbf{U}_L + \mathbf{U}_R$
-        Vec3<double> sumU = (Vec3<double>)lFV.U + (Vec3<double>)rFV.U;
+        Vec3<double> sumU = (Vec3<double>)le.U + (Vec3<double>)ri.U;
         //tex:先算$\bar{\mathbf{A}}\left(\mathbf{U}_L + \mathbf{U}_R\right)$
         Vec3<double> flux = (
             sumU[2],
-            (gamma - 3) * aveVelocity.Square() / 2 * sumU[1]
+            (gamma - 3) * aveVelocity.Square / 2 * sumU[1]
                 + (3 - gamma) * aveVelocity * sumU[2]
                 + (gamma - 1) * sumU[3],
             ((gamma - 1) * Math.Pow(aveVelocity, 3) / 2 - aveVelocity * aveEnthalpy) * sumU[1]
-                + (aveEnthalpy - (gamma - 1) * aveVelocity.Square()) * sumU[2]
+                + (aveEnthalpy - (gamma - 1) * aveVelocity.Square) * sumU[2]
                 + gamma * aveVelocity * sumU[3]
         );
         //tex: 减去特征分解项$\sum\limits_{k=1}^{3} \left|\lambda_k\right| \alpha_k \mathbf{r}_k$
