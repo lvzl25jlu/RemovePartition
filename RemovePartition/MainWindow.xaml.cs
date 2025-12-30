@@ -32,20 +32,25 @@ public partial class MainWindow : Window
             {
                 case StateEnum.Idle:
                     // 空闲时可以调整输入
-                    PartitionPositionSlider.IsEnabled = true;
+                    PartitionPosition_Sld.IsEnabled = true;
                     LDensity_TB.IsEnabled = true;
                     RDensity_TB.IsEnabled = true;
                     LPressure_TB.IsEnabled = true;
                     RPressure_TB.IsEnabled = true;
-                    Delta_t_TB.IsEnabled = true;
-                    Delta_x_TB.IsEnabled = true;
+                    DeltaT_TB.IsEnabled = true;
+                    DeltaX_TB.IsEnabled = true;
+                    IdealGas_CB.IsEnabled = true;
+                    DynamicInterval_CB.IsEnabled = true;
                     // 空闲时（初始状态）才能移除隔板
-                    RemoveButton.IsEnabled = true;
+                    Remove_Btn.IsEnabled = true;
                     // 还没开始推进
-                    NextStepButton.IsEnabled = false;
-                    NextManyButton.IsEnabled = false;
+                    NextStep_Btn.IsEnabled = false;
+                    NextMany_Btn.IsEnabled = false;
                     // 可以重置
-                    ResetButton.IsEnabled = true;
+                    Reset_Btn.IsEnabled = true;
+                    //可以测试
+                    TestL_Btn.IsEnabled = true;
+                    TestR_Btn.IsEnabled = true;
                     // 可以选择方法
                     MainMethod_CB.IsEnabled = true;
                     FluxMethod_CB.IsEnabled = true;
@@ -53,20 +58,27 @@ public partial class MainWindow : Window
                     break;
                 case StateEnum.Working:
                     // 工作时不许调整输入
-                    PartitionPositionSlider.IsEnabled = false;
+                    PartitionPosition_Sld.IsEnabled = false;
                     LDensity_TB.IsEnabled = false;
                     RDensity_TB.IsEnabled = false;
                     LPressure_TB.IsEnabled = false;
                     RPressure_TB.IsEnabled = false;
-                    Delta_t_TB.IsEnabled = false;
-                    Delta_x_TB.IsEnabled = false;
+                    DeltaT_TB.IsEnabled = false;
+                    DeltaX_TB.IsEnabled = false;
+                    // 此时理想气体没有意义
+                    IdealGas_CB.IsEnabled = false;
+                    // 可以调整动态时间步长
+                    DynamicInterval_CB.IsEnabled = true;
                     // 无法移走已经被移走的隔板
-                    RemoveButton.IsEnabled = false;
+                    Remove_Btn.IsEnabled = false;
                     // 可以推进
-                    NextStepButton.IsEnabled = true;
-                    NextManyButton.IsEnabled = true;
+                    NextStep_Btn.IsEnabled = true;
+                    NextMany_Btn.IsEnabled = true;
                     // 可以重置
-                    ResetButton.IsEnabled = true;
+                    Reset_Btn.IsEnabled = true;
+                    //可以测试
+                    TestL_Btn.IsEnabled = true;
+                    TestR_Btn.IsEnabled = true;
                     // 可以选择方法
                     MainMethod_CB.IsEnabled = true;
                     FluxMethod_CB.IsEnabled = true;
@@ -74,17 +86,21 @@ public partial class MainWindow : Window
                     break;
                 case StateEnum.Busy:
                     // 耐心等待计算完成，什么都不要干
-                    PartitionPositionSlider.IsEnabled = false;
+                    PartitionPosition_Sld.IsEnabled = false;
                     LDensity_TB.IsEnabled = false;
                     RDensity_TB.IsEnabled = false;
                     LPressure_TB.IsEnabled = false;
                     RPressure_TB.IsEnabled = false;
-                    Delta_t_TB.IsEnabled = false;
-                    Delta_x_TB.IsEnabled = false;
-                    RemoveButton.IsEnabled = false;
-                    NextStepButton.IsEnabled = false;
-                    NextManyButton.IsEnabled = false;
-                    ResetButton.IsEnabled = false;
+                    DeltaT_TB.IsEnabled = false;
+                    DeltaX_TB.IsEnabled = false;
+                    IdealGas_CB.IsEnabled = false;
+                    DynamicInterval_CB.IsEnabled = false;
+                    Remove_Btn.IsEnabled = false;
+                    NextStep_Btn.IsEnabled = false;
+                    NextMany_Btn.IsEnabled = false;
+                    Reset_Btn.IsEnabled = false;
+                    TestL_Btn.IsEnabled = false;
+                    TestR_Btn.IsEnabled = false;
                     MainMethod_CB.IsEnabled = false;
                     FluxMethod_CB.IsEnabled = false;
                     AdvanceMethod_CB.IsEnabled = false;
@@ -106,8 +122,8 @@ public partial class MainWindow : Window
         LPressure_TB.Text = $"{PartitionedGas.DEFAULT_L_PRESSURE}";
         RDensity_TB.Text = $"{PartitionedGas.DEFAULT_R_DENSITY}";
         RPressure_TB.Text = $"{PartitionedGas.DEFAULT_R_PRESSURE}";
-        Delta_t_TB.Text = $"{FluentGas.DEFAULT_DT}";
-        Delta_x_TB.Text = $"{FluentGas.DEFAULT_DX}";
+        DeltaT_TB.Text = $"{FluentGas.DEFAULT_DT}";
+        DeltaX_TB.Text = $"{FluentGas.DEFAULT_DX}";
         CFL_TB.Text = $"{FluentGas.DEFAULT_CFL}";
         CurTime_TB.Text = "0";
         StepCnt_TB.Text = "0";
@@ -119,7 +135,7 @@ public partial class MainWindow : Window
         RoutedEventHandler? onLoaded = null;
         onLoaded = new RoutedEventHandler((s, e) =>
         {
-            PartitionPositionSlider.ValueChanged += Slider_ValueChanged;
+            PartitionPosition_Sld.ValueChanged += Slider_ValueChanged;
             Draw();
             Loaded -= onLoaded!;
         });
@@ -265,15 +281,24 @@ public partial class MainWindow : Window
 
     private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        (gas as PartitionedGas)!.PartitionIndex = (int)e.NewValue;
+        var pGas = (gas as PartitionedGas)!;
+        pGas!.PartitionIndex = (int)e.NewValue;
+
+        // 这段代码会触发 TextChanged 事件
+        // 但是不影响结果
+        LDensity_TB.Text = $"{pGas.LGas.Density}";
+        RDensity_TB.Text = $"{pGas.RGas.Density}";
+        LPressure_TB.Text = $"{pGas.LGas.Pressure}";
+        RPressure_TB.Text = $"{pGas.RGas.Pressure}";
+
         Draw();
     }
 
-    private void RemoveButton_Click(object sender, RoutedEventArgs e)
+    private void Remove_Btn_Click(object sender, RoutedEventArgs e)
     {
         if (true // 对齐用
-            && double.TryParse(Delta_t_TB.Text, out var dt)
-            && double.TryParse(Delta_x_TB.Text, out var dx)
+            && double.TryParse(DeltaT_TB.Text, out var dt)
+            && double.TryParse(DeltaX_TB.Text, out var dx)
             && double.TryParse(CFL_TB.Text, out var cfl))
         {
             State = StateEnum.Working;
@@ -281,8 +306,8 @@ public partial class MainWindow : Window
             stepCnt = 0;
             gas = new FluentGas(gas)
             {
-                Delta_t = dt,
-                Delta_x = dx,
+                DeltaT = dt,
+                DeltaX = dx,
                 CFL = cfl,
             };
             Draw();
@@ -295,7 +320,7 @@ public partial class MainWindow : Window
 
     async Task Next()
     {
-        var dt = (gas as FluentGas)!.Delta_t;
+        var fGas = (gas as FluentGas)!;
         try
         {
             FluxCalculator fluxMethod = Enum.Parse<FluentGas.FluxMethodEnum>(
@@ -307,6 +332,13 @@ public partial class MainWindow : Window
                 FluentGas.FluxMethodEnum.HLLC => FluxCalculators.HLLC,
                 _ => throw new UnreachableException(),
             };
+            TimeAdvancer timeAdvancer = Enum.Parse<FluentGas.TimeAdvanceMethodEnum>(
+                (AdvanceMethod_CB.SelectedItem as ComboBoxItem)!.Content.ToString()!) switch
+            {
+                FluentGas.TimeAdvanceMethodEnum.ForwardEular => RungeKutta.Eular,
+                FluentGas.TimeAdvanceMethodEnum.RK3 => RungeKutta.RK3,
+                _ => throw new UnreachableException(),
+            };
             var mainMethod = Enum.Parse<FluentGas.MainMethodEnum>(
                 (MainMethod_CB.SelectedItem as ComboBoxItem)!.Content.ToString()!);
             switch (mainMethod)
@@ -314,10 +346,12 @@ public partial class MainWindow : Window
                 case FluentGas.MainMethodEnum.Godunov:
                     await Task.Run(() =>
                     {
-                        (gas as FluentGas)!.Godunov(fluxMethod);
+                        fGas.Godunov(fluxMethod, timeAdvancer);
                     });
                     break;
-                case FluentGas.MainMethodEnum.DG: break;
+                case FluentGas.MainMethodEnum.DG:
+                    MessageBox.Show("暂未实现 DG");
+                    break;
                 default: throw new UnreachableException();
             }
         }
@@ -327,34 +361,39 @@ public partial class MainWindow : Window
             return;
         }
 
-        curTime += dt;
+        curTime += fGas.DeltaT;
         stepCnt += 1;
-        Delta_t_TB.Text = $"{(gas as FluentGas)!.Delta_t}";
+        if (IsDynamicInterval)
+        {
+            fGas.UpdateDelta_t();
+        }
+        DeltaT_TB.Text = $"{fGas.DeltaT}";
         Draw();
     }
 
-    private async void NextStepButton_Click(object sender, RoutedEventArgs e)
+    private async void NextStep_Btn_Click(object sender, RoutedEventArgs e)
     {
         State = StateEnum.Busy;
         await Next();
         State = StateEnum.Working;
     }
 
-    private void ResetButton_Click(object sender, RoutedEventArgs e)
+    private void Reset_Btn_Click(object sender, RoutedEventArgs e)
     {
+        var pGas = new PartitionedGas();
+        gas = pGas;
         State = StateEnum.Idle;
-        gas = new PartitionedGas();
         curTime = 0;
         stepCnt = 0;
-        PartitionPositionSlider.Value = (gas as PartitionedGas)!.PartitionIndex;
-        LDensity_TB.Text = $"{(gas as PartitionedGas)!.LGas.Density}";
-        RDensity_TB.Text = $"{(gas as PartitionedGas)!.RGas.Density}";
-        LPressure_TB.Text = $"{(gas as PartitionedGas)!.LGas.Pressure}";
-        RPressure_TB.Text = $"{(gas as PartitionedGas)!.RGas.Pressure}";
+        PartitionPosition_Sld.Value = pGas.PartitionIndex;
+        LDensity_TB.Text = $"{pGas.LGas.Density}";
+        RDensity_TB.Text = $"{pGas.RGas.Density}";
+        LPressure_TB.Text = $"{pGas.LGas.Pressure}";
+        RPressure_TB.Text = $"{pGas.RGas.Pressure}";
         Draw();
     }
 
-    private async void NextManyButton_Click(object sender, RoutedEventArgs e)
+    private async void NextMany_Btn_Click(object sender, RoutedEventArgs e)
     {
         const int STEP_CNT = 10000;
         State = StateEnum.Busy;
@@ -364,10 +403,20 @@ public partial class MainWindow : Window
         }
         State = StateEnum.Working;
     }
-
-    private void TestButton_Click(object sender, RoutedEventArgs e)
+    private void TestL_Btn_Click(object sender, RoutedEventArgs e)
     {
-        MessageBox.Show(string.Join("\t", gas.Velocitys.Select(v => $"{v}")));
+        MessageBox.Show("这可能是一条调试信息");
+    }
+    private void TestR_Btn_Click(object sender, RoutedEventArgs e)
+    {
+        MessageBox.Show("这是一条调试信息不太可能");
     }
 
+
+    bool IsDynamicInterval { get; set; } = false;
+    private void DynamicInterval_CB_Click(object sender, RoutedEventArgs e)
+        => IsDynamicInterval = DynamicInterval_CB.IsChecked ?? false;
+
+    private void IdealGas_CB_Click(object sender, RoutedEventArgs e)
+        => (gas as PartitionedGas)?.IsIdealGas = IdealGas_CB.IsChecked ?? false;
 }

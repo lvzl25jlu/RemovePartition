@@ -39,15 +39,21 @@ partial class FluentGas : IGas
 
     public int PointsCount
     {
-        get => Ps.Length; set
+        get => Ps.Length; init
         {
             points = [.. Enumerable.Repeat(new FluidVaribles(), value)];
         }
     }
 
-    public double Delta_x { get; set; } = DEFAULT_DX;
-    public double Delta_t { get; set; } = DEFAULT_DT;
+    public double DeltaX { get; set; } = DEFAULT_DX;
+    public double DeltaT { get; set; } = DEFAULT_DT;
     public double CFL { get; set; } = DEFAULT_CFL;
+
+    public void UpdateDelta_t()
+    {
+        //tex:$\Delta t=\text{CFL}\times\frac{\Delta x}{ \left|u\right|+c}$
+        DeltaT = CFL * DeltaX / (Ps.Select(p => p.SoundSpeed + Math.Abs(p.Velocity)).Max());
+    }
 
     public double[] Densitys => [.. Ps.Select(p => p.Density)];
     public double[] Pressures => [.. Ps.Select(p => p.Pressure)];

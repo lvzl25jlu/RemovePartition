@@ -26,7 +26,7 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <Label Content="分隔位置"/>
-                    <Slider Width="200" Value="50" Maximum="99" Minimum="1" x:Name="PartitionPositionSlider"/>
+                    <Slider Width="200" Value="50" Maximum="99" Minimum="1" x:Name="PartitionPosition_Sld"/>
                 </StackPanel>
                 <Grid Grid.Column="0" Grid.Row="1">
                     <Grid.RowDefinitions>
@@ -57,7 +57,16 @@
                     <TextBox x:Name="RPressure_TB"  Grid.Row="1" Grid.Column="1"/>
                 </Grid>
             </Grid>
-            <!--网格参数-->
+            <!--两个选项-->
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <CheckBox x:Name="IdealGas_CB" Content="理想气体" IsChecked="True" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="IdealGas_CB_Click"/>
+                <CheckBox x:Name="DynamicInterval_CB" Content="动态步长" IsChecked="True" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Click="DynamicInterval_CB_Click"/>
+                </Grid>
+                <!--网格参数-->
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -69,9 +78,9 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Label  Content="Δx" Grid.Row="0"  Grid.Column="0" />
-                <TextBox x:Name="Delta_x_TB"   Grid.Row="0"  Grid.Column="1" Width="50" IsEnabled="False"/>
+                <TextBox x:Name="DeltaX_TB"   Grid.Row="0"  Grid.Column="1" Width="50" IsEnabled="False"/>
                 <Label Content="Δt" Grid.Row="1"  Grid.Column="0"/>
-                <TextBox x:Name="Delta_t_TB"  Grid.Row="1"  Grid.Column="1" Width="50"/>
+                <TextBox x:Name="DeltaT_TB"  Grid.Row="1"  Grid.Column="1" Width="50"/>
                 <Label Content="CFL" Grid.Row="2"  Grid.Column="0"/>
                 <TextBox x:Name="CFL_TB" Grid.Row="2"  Grid.Column="1"  Width="50"/>
             </Grid>
@@ -99,11 +108,12 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Button x:Name="RemoveButton" Grid.Column="0"  Grid.Row="0" Content="移除分隔" Margin="10,1,0,1" Click="RemoveButton_Click"/>
-                <Button x:Name="ResetButton" Grid.Column="1"   Grid.Row="0" Content="重置" Margin="10,1,0,1" Click="ResetButton_Click"/>
-                <Button x:Name="NextStepButton" Grid.Column="0"  Grid.Row="1" Content="下一步" Margin="10,1,0,1" Click="NextStepButton_Click"/>
-                <Button x:Name="NextManyButton" Grid.Column="1"  Grid.Row="1" Content="下几步" Margin="10,1,0,1" Click="NextManyButton_Click"/>
-                <Button x:Name="TestButton" Grid.Column="0"  Grid.Row="2" Content="测试" Margin="10,1,0,1" Click="TestButton_Click"/>
+                <Button x:Name="Remove_Btn" Grid.Column="0"  Grid.Row="0" Content="移除分隔" Margin="10,1,0,1" Click="Remove_Btn_Click"/>
+                <Button x:Name="Reset_Btn" Grid.Column="1"   Grid.Row="0" Content="重置" Margin="10,1,0,1" Click="Reset_Btn_Click"/>
+                <Button x:Name="NextStep_Btn" Grid.Column="0"  Grid.Row="1" Content="下一步" Margin="10,1,0,1" Click="NextStep_Btn_Click"/>
+                <Button x:Name="NextMany_Btn" Grid.Column="1"  Grid.Row="1" Content="下几步" Margin="10,1,0,1" Click="NextMany_Btn_Click"/>
+                <Button x:Name="TestL_Btn" Grid.Column="0"  Grid.Row="2" Content="测试" Margin="10,1,0,1" Click="TestL_Btn_Click"/>
+                <Button x:Name="TestR_Btn" Grid.Column="1"  Grid.Row="2" Content="测试" Margin="10,1,0,1" Click="TestR_Btn_Click" />
             </Grid>
             <!--方法选择-->
             <Grid>
