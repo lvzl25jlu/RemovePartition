@@ -19,7 +19,7 @@ partial class FluentGas
             {
                 Velocity = -Ps[0].Velocity
             }, Ps[0]);
-            for (int i = 1; i < points.Length; i++)
+            for(int i = 1; i < points.Length; i++)
             {
                 fluxs[i] = fluxCal(Ps[i - 1], Ps[i]);
             }
@@ -29,7 +29,7 @@ partial class FluentGas
             });
             //tex:$\mathbf{R}_j=-\frac{1}{\Delta x}\left(\mathbf{F}_{j+\frac 12}-\mathbf{F}_{j-\frac 12}\right)$
             return [.. flus.Select((_, i) =>
-                ( fluxs[i]-fluxs[i + 1] )/DeltaX
+                (fluxs[i]-fluxs[i + 1] )/DeltaX
             )];
         });
     }
