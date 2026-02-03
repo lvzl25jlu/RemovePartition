@@ -62,5 +62,6 @@ public class PartitionedGas : IGas
         .. Enumerable.Repeat(LGas.Pressure, PartitionIndex-0),
         .. Enumerable.Repeat(RGas.Pressure, PointsCount - PartitionIndex)
     ];
+    public double[] Velocitys => [.. Enumerable.Repeat(0, PointsCount)];
 }
 

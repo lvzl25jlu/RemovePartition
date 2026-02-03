@@ -8,10 +8,9 @@ namespace RemovePartition;
 
 public interface IGas
 {
-    public const int DEFAULT_POINTS_COUNT = 100;
-    public int PointsCount { get; init; }
-    public double[] Densitys { get; }
-    public double[] Pressures { get; }
-    public double[] Velocitys => [.. Enumerable.Repeat(0, PointsCount)];
+    const int DEFAULT_POINTS_COUNT = 100;
+    int PointsCount { get; init; }
+    double[] Densitys { get; }
+    double[] Pressures { get; }
+    double[] Velocitys { get; }
 }
-

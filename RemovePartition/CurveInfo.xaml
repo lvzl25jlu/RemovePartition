@@ -1,0 +1,27 @@
+﻿<UserControl 
+    x:Class="RemovePartition.CurveInfo"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+    xmlns:local="clr-namespace:RemovePartition"
+    mc:Ignorable="d" 
+    d:DataContext="{d:DesignInstance Type=local:CurveInfo, IsDesignTimeCreatable=True}"
+    d:DesignHeight="450" d:DesignWidth="800">
+    <Border BorderBrush="{Binding ColorBrush, RelativeSource={RelativeSource AncestorType=UserControl}}"
+            BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Background="{Binding ColorBrush, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+            <TextBlock Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,0" Text="{Binding MainMethod, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+            <TextBlock Grid.Row="2" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,0" Text="{Binding FluxMethod, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+            <TextBlock Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,0" Text="{Binding TimeMethod, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+        </Grid>
+    </Border>
+</UserControl>

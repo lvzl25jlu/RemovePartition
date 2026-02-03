@@ -10,10 +10,10 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
             <RowDefinition Height="2*"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <StackPanel Orientation="Horizontal" Margin="10">
+        <StackPanel Orientation="Horizontal" Margin="5,5,5,5">
             <!--初态参数-->
             <Grid>
                 <Grid.RowDefinitions>
@@ -64,9 +64,9 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <CheckBox x:Name="IdealGas_CB" Content="理想气体" IsChecked="True" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Click="IdealGas_CB_Click"/>
-                <CheckBox x:Name="DynamicInterval_CB" Content="动态步长" IsChecked="True" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Click="DynamicInterval_CB_Click"/>
-                </Grid>
-                <!--网格参数-->
+                <CheckBox x:Name="DynamicInterval_CB" Content="动态步长" IsChecked="False" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Click="DynamicInterval_CB_Click"/>
+            </Grid>
+            <!--网格参数-->
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -100,42 +100,28 @@
             <!--几个按钮-->
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Button x:Name="Remove_Btn" Grid.Column="0"  Grid.Row="0" Content="移除分隔" Margin="10,1,0,1" Click="Remove_Btn_Click"/>
-                <Button x:Name="Reset_Btn" Grid.Column="1"   Grid.Row="0" Content="重置" Margin="10,1,0,1" Click="Reset_Btn_Click"/>
-                <Button x:Name="NextStep_Btn" Grid.Column="0"  Grid.Row="1" Content="下一步" Margin="10,1,0,1" Click="NextStep_Btn_Click"/>
-                <Button x:Name="NextMany_Btn" Grid.Column="1"  Grid.Row="1" Content="下几步" Margin="10,1,0,1" Click="NextMany_Btn_Click"/>
-                <Button x:Name="TestL_Btn" Grid.Column="0"  Grid.Row="2" Content="测试" Margin="10,1,0,1" Click="TestL_Btn_Click"/>
-                <Button x:Name="TestR_Btn" Grid.Column="1"  Grid.Row="2" Content="测试" Margin="10,1,0,1" Click="TestR_Btn_Click" />
+                <Button x:Name="Remove_Btn" Grid.Column="0"  Grid.Row="0" Content="移除分隔" Margin="5,5,5,5" Click="Remove_Btn_Click"/>
+                <Button x:Name="Reset_Btn" Grid.Column="1"   Grid.Row="0" Content="重置状态" Margin="5,5,5,5" Click="Reset_Btn_Click" />
+                <Grid Grid.Column="0"  Grid.Row="1" Grid.ColumnSpan="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="Advace_Btn" Grid.Column="0"  Content="推进" Margin="5,5,5,5" Padding="5,0,5,0" Click="Advance_Btn_Click"/>
+                    <TextBox x:Name="StepNum_TB" Text="1000"  Grid.Column="1" VerticalAlignment="Center"  />
+                    <Label Content="步" Grid.Column="2" VerticalAlignment="Center" HorizontalContentAlignment="Center"/>
+                </Grid>
             </Grid>
-            <!--方法选择-->
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <Label Content="主要方法" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="0"/>
-                <ComboBox x:Name="MainMethod_CB" Width="120" Margin="10,0,0,0" Grid.Column="1" Grid.Row="0">
-                </ComboBox>
-                <Label Content="通量方法" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="1"/>
-                <ComboBox x:Name="FluxMethod_CB" Width="120" Margin="10,0,0,0" Grid.Column="1" Grid.Row="1">
-                </ComboBox>
-                <Label Content="推进方法" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="2"/>
-                <ComboBox x:Name="AdvanceMethod_CB" Width="120" Margin="10,0,0,0" Grid.Column="1" Grid.Row="2">
-                </ComboBox>
-            </Grid>
+            <StackPanel x:Name="CurvePanel" Orientation="Horizontal"></StackPanel>
+            <Button x:Name="AddCurve_Btn" Content="添加曲线" Click="AddCurve_Btn_Click" Margin="5,10" Padding="5,0" />
         </StackPanel>
         <Grid Grid.Row="1" >
             <Grid.ColumnDefinitions>
@@ -150,28 +136,11 @@
                     <RowDefinition  Height="Auto"/>
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Text="2" x:Name="DensityMax_TB" TextWrapping="NoWrap" VerticalAlignment="Bottom"/>
-                <Canvas Grid.Row="1" Background="LightGray"  x:Name="Density_Canvas" Margin="10,0,10,0"/>
+                <Canvas Grid.Row="1" Background="LightGray"  x:Name="Density_Canvas" Margin="5,5,5,5"/>
                 <TextBlock Grid.Row="2" Text="0" x:Name="DensityMinTextBlock"  TextWrapping="NoWrap" VerticalAlignment="Top"/>
             </Grid>
         </Grid>
-        <Grid Grid.Row="2" >
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Label Content="压&#x000A;&#x000A;强" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="0"/>
-            <Grid Grid.Column="1" Height="Auto">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition  Height="Auto"/>
-                </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="2" x:Name="PressureMax_TB" TextWrapping="NoWrap" VerticalAlignment="Bottom"/>
-                <Canvas Grid.Row="1" Background="LightGray"  x:Name="Pressure_Canvas" Margin="10,0,10,0"/>
-                <TextBlock Grid.Row="2" Text="0" x:Name="PressureMinTextBlock"  TextWrapping="NoWrap" VerticalAlignment="Top"/>
-            </Grid>
-        </Grid>
-        <Grid Grid.Row="3">
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
@@ -184,8 +153,25 @@
                     <RowDefinition  Height="Auto"/>
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Text="1" x:Name="VelocityMax_TB" TextWrapping="NoWrap" VerticalAlignment="Bottom"/>
-                <Canvas Grid.Row="1" Background="LightGray" x:Name="Velocity_Canvas" Margin="10,0,10,0"/>
+                <Canvas Grid.Row="1" Background="LightGray" x:Name="Velocity_Canvas" Margin="5,5,5,5"/>
                 <TextBlock Grid.Row="2" Text="-1" x:Name="VelocityMin_TB"  TextWrapping="NoWrap" VerticalAlignment="Top"/>
+            </Grid>
+        </Grid>
+        <Grid Grid.Row="3" >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Label Content="压&#x000A;&#x000A;强" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="0"/>
+            <Grid Grid.Column="1" Height="Auto">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition  Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="2" x:Name="PressureMax_TB" TextWrapping="NoWrap" VerticalAlignment="Bottom"/>
+                <Canvas Grid.Row="1" Background="LightGray"  x:Name="Pressure_Canvas" Margin="5,5,5,5"/>
+                <TextBlock Grid.Row="2" Text="0" x:Name="PressureMinTextBlock"  TextWrapping="NoWrap" VerticalAlignment="Top"/>
             </Grid>
         </Grid>
     </Grid>
